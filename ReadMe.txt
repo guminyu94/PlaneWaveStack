@@ -3,10 +3,11 @@
 ========================================================================
 
 The Intel Fortran Console Application Wizard has created this 
-"PlaneWaveStack_Minyu" project for you as a starting point.
 
-This file contains a summary of what you will find in each of the files 
-that make up your project.
+!   PlaneWaveStack_Minyu.f90 
+!   S and T Matrix Formation for Stacked Layed Media Exicted by Plane Wave.
+!   Minyu Gu, 03/20/2020
+!   Intel Fortran Compiler, VS2017
 
 PlaneWaveStack_Minyu.vfproj
     This is the main project file for Fortran projects generated using an 
