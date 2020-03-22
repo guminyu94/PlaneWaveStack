@@ -18,24 +18,29 @@
     program PlaneWaveStack_Minyu
 
     use Sim_parameters
+    use Layer_Class
     implicit none
     
     
     integer :: n_layers, i
-    complex, allocatable :: eps(:), mu(:), sigma_x(:), sigma_y(:) 
+    complex, allocatable :: eps_t(:), mu_t(:), sigma_x(:), sigma_y(:), nu_e(:), nu_h(:)
     real, allocatable :: d(:)
     real :: freq_in
+    type(Layer), allocatable :: layers(:)
     
     
     ! input layered parameters        
     print *, "Number of Layers"
     read (*,*) n_layers
     
-    allocate(eps(n_layers))
-    allocate(mu(n_layers))
+    allocate(eps_t(n_layers))
+    allocate(mu_t(n_layers))
     allocate(sigma_x(n_layers))
     allocate(sigma_y(n_layers))
     allocate(d(n_layers))
+    allocate(nu_e(n_layers))
+    allocate(nu_h(n_layers))
+    allocate(layers(n_layers))
     
     ! input frequency   
     print *, "Frequency"
@@ -49,9 +54,9 @@
     
     type(layer), allocatable :: layers(n_layers)
     do i = 1, n_layers
-         :: 
-        print *, i, "th: ", "eps, mu, sigma_x, sigma_y, thickness"
-        read(*,*) eps(i), mu(i), sigma_x(i), sigma_y(i),  d(i)
+        print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu(h) (anisotrpic ratio), thickness"
+        read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i)
+        call initalize_layer(layers(i),eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i))
     end do
     
     ! calculate the paramters of each layer used for assembling matrix, encapsulated in an array of layer obj
