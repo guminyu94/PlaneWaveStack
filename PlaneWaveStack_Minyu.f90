@@ -28,7 +28,6 @@
     real :: freq_in
     type(Layer), allocatable :: layers(:)
     
-    
     ! input layered parameters        
     print *, "Number of Layers"
     read (*,*) n_layers
@@ -52,7 +51,6 @@
     call update_freq(freq_in)
     print *, lambda_0
     
-    type(layer), allocatable :: layers(n_layers)
     do i = 1, n_layers
         print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu(h) (anisotrpic ratio), thickness"
         read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i)
