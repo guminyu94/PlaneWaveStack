@@ -40,6 +40,7 @@
     allocate(nu_e(n_layers))
     allocate(nu_h(n_layers))
     allocate(layers(n_layers))
+    allocate(S_Matrice(n_layers))
     
     ! input frequency   
     print *, "Frequency"
@@ -54,7 +55,14 @@
     do i = 1, n_layers
         print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu(h) (anisotrpic ratio), thickness"
         read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i)
-        call initalize_layer(layers(i),eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i))
+        ! readin layers' parameters, and assemble layer obj
+        layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i))
+    end do
+    
+    
+    do i = 1, n_layers
+        ! assemble S Matrix
+        S_Matrice(i)=S_Matrix(layers(i),layers(i+1))
     end do
     
     ! calculate the paramters of each layer used for assembling matrix, encapsulated in an array of layer obj
@@ -67,18 +75,5 @@
 
     end program PlaneWaveStack_Minyu
     
-!****************************************************************************
-!
-!   subroutine: CAL_PARAM
-!
-!   PURPOSE:  calculate paramters Z_n, Y_n, P_n used for S matrix 
-!
-!****************************************************************************
+
     
-!****************************************************************************
-!
-!   subroutine: S_Matrix
-!
-!   PURPOSE:  calculate S matrix of nth layer 
-!
-!****************************************************************************
