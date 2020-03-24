@@ -10,23 +10,25 @@
 !
 !   PURPOSE:  Main Program
 !   1. Data IO 
-!   2. Call Subroutine - CAL_PARAM, to calculate paramters Z_n, Y_n, P_n used for S matrix 
+!   2. build layers and S matrix objs 
 !   3. 
 !   
 !****************************************************************************
 
-    program PlaneWaveStack_Minyu
+program PlaneWaveStack_Minyu
 
     use Sim_parameters
     use Layer_Class
-    implicit none
-    
+    use S_Matrix_Class
+    implicit none    
     
     integer :: n_layers, i
     complex, allocatable :: eps_t(:), mu_t(:), sigma_x(:), sigma_y(:), nu_e(:), nu_h(:)
     real, allocatable :: d(:)
     real :: freq_in
     type(Layer), allocatable :: layers(:)
+    type(S_Matrix), allocatable :: S_Matrice(:)
+    type(S_Matrix) :: S_Cascaded
     
     ! input layered parameters        
     print *, "Number of Layers"
@@ -40,7 +42,7 @@
     allocate(nu_e(n_layers))
     allocate(nu_h(n_layers))
     allocate(layers(n_layers))
-    allocate(S_Matrice(n_layers))
+    allocate(S_Matrices(n_layers-1))
     
     ! input frequency   
     print *, "Frequency"
@@ -51,21 +53,38 @@
     ! update constant paramters
     call update_freq(freq_in)
     print *, lambda_0
-    
+     
     do i = 1, n_layers
-        print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu(h) (anisotrpic ratio), thickness"
-        read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i)
-        ! readin layers' parameters, and assemble layer obj
-        layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i))
+        if (i .EQ. 1) then
+            print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotrpic ratio), first layer"
+            read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i)
+            ! for first and last layer, d is not necessary 
+            layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), 0)
+        else if (i .EQ. n_layers) then
+            print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotrpic ratio), last layer"
+            read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i)
+            ! readin layers' parameters, and assemble layer obj
+            layers(i)=Layer(eps_t(i), mu_t(i), 0, 0, nu_e(i), nu_h(i), 0)
+            layers(i)%P_n = unit_matrix
+        else
+            print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotrpic ratio), thickness"
+            read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i)
+            ! readin layers' parameters, and assemble layer obj
+            layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i))            
+        end if
     end do
     
     
-    do i = 1, n_layers
-        ! assemble S Matrix
-        S_Matrice(i)=S_Matrix(layers(i),layers(i+1))
-    end do
+   do i = 1, n_layers-1
+    ! assemble S Matrix from layer obj
+       S_Matrices(i)=S_Matrix(layers(i),layers(i+1))
+   end do
+   
+   ! cascade S Matrices
+    S_Cascaded = S_Matrices_Cascaded(S_Matrices)
     
-    ! calculate the paramters of each layer used for assembling matrix, encapsulated in an array of layer obj
+    
+    
     
     
     ! end
@@ -73,7 +92,5 @@
     
     read (*,*)
 
-    end program PlaneWaveStack_Minyu
-    
-
+end program PlaneWaveStack_Minyu
     

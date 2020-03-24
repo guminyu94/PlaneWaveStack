@@ -2,18 +2,19 @@
 !
 !   class: Layer_Class
 !
-!   PURPOSE:  calculate parameters of nth layer 
+!   PURPOSE:  calculate parameters of nth layer
 !
 !****************************************************************************
-    module Layer_Class
+module Layer_Class
     use Sim_parameters, only : eta_0, k_0, k_rho
     implicit none
+    
     private
     public :: Layer
     
     type Layer
         complex :: eps_t, mu_t, Z_e, Z_h, kz_e, kz_h, k_t, nu_e, nu_h
-        complex, dimension(2,2) :: sigma, P_n, Z_n, Y_n  
+        complex, dimension(2,2) :: sigma_n, P_n, Z_n, Y_n  
         real :: d
     end type Layer
     
@@ -34,11 +35,13 @@
         initalize_layer%mu_t = eps_t_in
         initalize_layer%nu_e = nu_e_in
         initalize_layer%nu_h = nu_h_in
+        initalize_layer%d = 0
+        
     
-        initalize_layer%sigma(1,1) = sigma_x_in
-        initalize_layer%sigma(1,2) = (0.0,0.0)
-        initalize_layer%sigma(2,1) = (0.0,0.0)
-        initalize_layer%sigma(2,2) = sigma_y_in
+        initalize_layer%sigma_n(1,1) = sigma_x_in
+        initalize_layer%sigma_n(1,2) = (0.0,0.0)
+        initalize_layer%sigma_n(2,1) = (0.0,0.0)
+        initalize_layer%sigma_n(2,2) = sigma_y_in
         initalize_layer%k_t = k_0 * (initalize_layer%eps_t * initalize_layer%mu_t) ** 0.5
         initalize_layer%kz_e = (initalize_layer%k_t**2-k_rho**2/initalize_layer%nu_e)**0.5
         initalize_layer%kz_h = (initalize_layer%k_t**2-k_rho**2/initalize_layer%nu_h)**0.5
