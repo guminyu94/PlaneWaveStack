@@ -1,8 +1,9 @@
 !   PlaneWaveStack_Minyu.f90 
-!   S and T Matrix Formation for Stacked Layed Media Exicted by Plane Wave.
+!   S Matrix Formation for Stacked Layed Media Exicted by Plane Wave.
 !   Minyu Gu, 03/20/2020
 !   Intel Fortran Compiler, VS2017
-    
+!   Ref[1] Modal transmission line theory of plane wave excited layered media with multiple conductive anisotropic sheets at the interfaces, K.A. Michakski, 2018
+!   Ref[2] Electromagnetic field computation in planar multilayers, K.A. Michalski
     
 !****************************************************************************
 !
@@ -10,9 +11,10 @@
 !
 !   PURPOSE:  Main Program
 !   1. Data IO 
-!   2. build layers and S matrix objs 
-!   3. 
+!   2. Build layers and S matrix objs 
+!   3. Cascade S matrices with star product and build fields vector
 !   
+!
 !****************************************************************************
 
 program PlaneWaveStack_Minyu
@@ -20,6 +22,7 @@ program PlaneWaveStack_Minyu
     use Sim_parameters
     use Layer_Class
     use S_Matrix_Class
+    use Fields_Class
     implicit none    
     
     integer :: n_layers, i
@@ -29,8 +32,9 @@ program PlaneWaveStack_Minyu
     type(Layer), allocatable :: layers(:)
     type(S_Matrix), allocatable :: S_Matrice(:)
     type(S_Matrix) :: S_Cascaded
+    integer :: isPecBacked
+    type(Fields) :: inc_Fields
     
-    ! input layered parameters        
     print *, "Number of Layers"
     read (*,*) n_layers
     
@@ -54,6 +58,7 @@ program PlaneWaveStack_Minyu
     call update_freq(freq_in)
     print *, lambda_0
      
+    ! input layered parameters   
     do i = 1, n_layers
         if (i .EQ. 1) then
             print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotrpic ratio), first layer"
@@ -74,6 +79,8 @@ program PlaneWaveStack_Minyu
         end if
     end do
     
+    ! asseble the fields vector, pec or free space on the last layer
+    
     
    do i = 1, n_layers-1
     ! assemble S Matrix from layer obj
@@ -83,13 +90,18 @@ program PlaneWaveStack_Minyu
    ! cascade S Matrices
     S_Cascaded = S_Matrices_Cascaded(S_Matrices)
     
-    
-    
-    
+    ! is pec backed ?
+    print *, "Input 1 if PEC Backed"
+    read(*,*) isPecBacked 
+    if (isPecBacked .EQ. 1) then
+        
+    else
+        
+        inc_Fields%Field_2 = (/(0.0,0.0),(0.0,0.0)/)
+    end if
     
     ! end
     print *, 'End of Program, Type in Any Key to Exit'
-    
     read (*,*)
 
 end program PlaneWaveStack_Minyu

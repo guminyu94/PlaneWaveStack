@@ -35,7 +35,7 @@ module Layer_Class
         initalize_layer%mu_t = eps_t_in
         initalize_layer%nu_e = nu_e_in
         initalize_layer%nu_h = nu_h_in
-        initalize_layer%d = 0
+        initalize_layer%d = d_in
         
     
         initalize_layer%sigma_n(1,1) = sigma_x_in

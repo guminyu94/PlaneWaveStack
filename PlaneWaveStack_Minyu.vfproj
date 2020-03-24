@@ -27,6 +27,7 @@
 		<Filter Name="Header Files" Filter="fi;fd"/>
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
+		<File RelativePath=".\Fields_Class.f90"/>
 		<File RelativePath=".\Layer_Class.f90"/>
 		<File RelativePath=".\PlaneWaveStack_Minyu.f90"/>
 		<File RelativePath=".\S_Matrix_Class.f90"/>

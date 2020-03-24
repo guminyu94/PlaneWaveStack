@@ -24,9 +24,9 @@ Module S_Matrix_Class
     end interface S_Matrix
     
     ! opertor override, star product
-     interface operator (*)
-        procedure star_product
-     end interface operator (*)
+    interface operator (*)
+        procedure :: star_product
+    end interface operator (*)
     
     contains
     ! initalization function of S_Matrix class
