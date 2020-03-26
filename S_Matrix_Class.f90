@@ -11,7 +11,7 @@ Module S_Matrix_Class
     implicit none
     
     private
-    public :: S_Matrix, S_Matrices_Cascade, star_product
+    public :: S_Matrix, S_Matrices_Cascade, star_product, S_Matrix_initalization
     
     ! define S_Matrix type
     Type S_Matrix
@@ -49,11 +49,12 @@ Module S_Matrix_Class
     
     ! cascade S matrix
     Type(S_Matrix) function S_Matrices_Cascade(S_Matrices, start_index, end_index)
-        Type(S_Matrix), allocatable, intent(in)
+        Type(S_Matrix), allocatable, intent(in) :: S_Matrices(:)
         integer, intent(in) :: start_index, end_index
-        S_Matrices_Cascaded = S_Matrices(start_index)
+        integer :: i
+        S_Matrices_Cascade = S_Matrices(start_index)
         do i = start_index+1, end_index
-            S_Matrices_Cascaded = S_Matrices_Cascaded * S_Matrices(i)
+            S_Matrices_Cascade = S_Matrices_Cascade * S_Matrices(i)
         end do
     end function
 end Module S_Matrix_Class

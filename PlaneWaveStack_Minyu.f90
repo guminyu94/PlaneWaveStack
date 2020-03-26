@@ -30,9 +30,10 @@ program PlaneWaveStack_Minyu
     real, allocatable :: d(:)
     real :: freq_in
     type(Layer), allocatable :: layers(:)
-    type(S_Matrix), allocatable :: S_Matrice(:)
+    type(S_Matrix), allocatable :: S_Matrices(:)
     integer :: isPecBacked
     type(Fields) :: inc_Fields
+    complex, dimension(2,2,2) :: tx_ref  
     
     print *, "Number of Layers"
     read (*,*) n_layers
@@ -60,53 +61,47 @@ program PlaneWaveStack_Minyu
     ! is pec backed ?
     print *, "Input 1 if PEC Backed"
     read(*,*) isPecBacked 
-    if (isPecBacked .EQ. 1) then
-        
-        inc_Fields%Field_2 = (/(0.0,0.0),(0.0,0.0)/)
-    else
-        
-        inc_Fields%Field_2 = (/(0.0,0.0),(0.0,0.0)/)
-    end if
     
     ! input layered parameters   
     do i = 1, n_layers
         if (i .EQ. 1) then
-            print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotrpic ratio), first layer"
+            print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotropic ratio), first layer"
             read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i)
-            ! for first and last layer, d is not necessary 
-            layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), 0)
+            ! for first layer, d is not necessary
+ 
+            layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), (1.0,1.0), (1.0,1.0), 0.0)
         else if (i .EQ. n_layers) then
             ! check if bakced by PEC
             if (isPecBacked .EQ. 1) then
-                print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotrpic ratio), thickness"
+                print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), thickness"
                 read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i), d(i)
                 ! readin layers' parameters, and assemble layer obj
-                layers(i)=Layer(eps_t(i), mu_t(i), 0, 0, nu_e(i), nu_h(i), d(i))
+                layers(i)=Layer(eps_t(i), mu_t(i), (0.0,0.0), (0.0,0.0), nu_e(i), nu_h(i), d(i))
             else
-                print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotrpic ratio), last layer"
+                print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), last layer"
                 read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i)
                 ! readin layers' parameters, and assemble layer obj
-                layers(i)=Layer(eps_t(i), mu_t(i), 0, 0, nu_e(i), nu_h(i), 0)
+                layers(i)=Layer(eps_t(i), mu_t(i), (0.0,0.0), (0.0,0.0), nu_e(i), nu_h(i), 0.0)
                 layers(i)%P_n = unit_matrix
             end if
         else
-            print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotrpic ratio), thickness"
+            print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotropic ratio), thickness"
             read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i)
             ! readin layers' parameters, and assemble layer obj
             layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i))            
         end if
     end do
     
-    ! asseble the fields vector, pec or free space on the last layer
-    
-    
    do i = 1, n_layers-1
     ! assemble S Matrix from layer obj
        S_Matrices(i)=S_Matrix(layers(i),layers(i+1))
    end do
    
+   ! obtain reflection coeff
+   tx_ref = trans_ref_coeff_freespace(S_Matrices)
+   print *, tx_ref(1,1:2,1:2), tx_ref(2,1:2,1:2)
    
-    
+   
     
     ! end
     print *, 'End of Program, Type in Any Key to Exit'
