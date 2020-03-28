@@ -62,14 +62,14 @@ program PlaneWaveStack_Minyu
     print *, "Input 1 if PEC Backed"
     read(*,*) isPecBacked 
     
-    ! input layered parameters   
+    ! input layered parameters
     do i = 1, n_layers
         if (i .EQ. 1) then
             print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotropic ratio), first layer"
             read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i)
             ! for first layer, d is not necessary
- 
             layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), (1.0,1.0), (1.0,1.0), 0.0)
+            
         else if (i .EQ. n_layers) then
             ! check if bakced by PEC
             if (isPecBacked .EQ. 1) then
@@ -82,7 +82,6 @@ program PlaneWaveStack_Minyu
                 read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i)
                 ! readin layers' parameters, and assemble layer obj
                 layers(i)=Layer(eps_t(i), mu_t(i), (0.0,0.0), (0.0,0.0), nu_e(i), nu_h(i), 0.0)
-                layers(i)%P_n = unit_matrix
             end if
         else
             print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotropic ratio), thickness"
@@ -92,9 +91,11 @@ program PlaneWaveStack_Minyu
         end if
     end do
     
+    print *, "S_Matrix: "
    do i = 1, n_layers-1
     ! assemble S Matrix from layer obj
        S_Matrices(i)=S_Matrix(layers(i),layers(i+1))
+       call print_S_matrix(S_Matrices(i))
    end do
    
    ! obtain reflection coeff

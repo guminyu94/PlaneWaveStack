@@ -10,7 +10,7 @@ module Layer_Class
     implicit none    
     
     private
-    public :: Layer
+    public :: Layer, print_layer
     
     type Layer
         complex :: eps_t, mu_t, nu_e, nu_h, Z_e, Z_h, kz_e, kz_h, k_t
@@ -33,7 +33,7 @@ contains
         type(Layer) :: new_layer
     
         new_layer%eps_t = eps_t_in
-        new_layer%mu_t = eps_t_in
+        new_layer%mu_t = mu_t_in
         new_layer%nu_e = nu_e_in
         new_layer%nu_h = nu_h_in
         new_layer%d = d_in
@@ -63,5 +63,17 @@ contains
         new_layer%Y_n(1,2) = (0.0,0.0)
         new_layer%Y_n(2,1) = (0.0,0.0)
     end function initalize_layer
+    
+    subroutine print_layer(layer_in)
+         implicit none
+         type(Layer), intent(in) :: layer_in
+         print *, "Printing current layer's paramter, ", "thickness: ", layer_in%d
+         print *, "eps_t: ", layer_in%eps_t, ", mu_t: ", layer_in%mu_t, ", nu_e: ", layer_in%nu_e, ", nu_h: ", layer_in%nu_h
+         print *, "k_t: ", layer_in%k_t, ", Z_e: ", layer_in%Z_e, ", Z_h: ", layer_in%Z_h, ", kz_e: ", layer_in%kz_e, ", kz_h: ", layer_in%kz_h
+         print *, "sigma: ", layer_in%sigma_n
+         print *, "P_n: ", layer_in%P_n
+         print *, "Z_n: ", layer_in%Z_n
+         print *, "Y_n: ", layer_in%Y_n  
+    end subroutine
   
 end module Layer_Class
