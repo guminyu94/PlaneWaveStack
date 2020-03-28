@@ -43,9 +43,9 @@ contains
         new_layer%sigma_n(2,1) = (0.0,0.0)
         new_layer%sigma_n(2,2) = sigma_y_in
         
-        new_layer%k_t = k_0 * (new_layer%eps_t * new_layer%mu_t) ** 0.5
-        new_layer%kz_e = (new_layer%k_t**2-k_rho**2/new_layer%nu_e)**0.5
-        new_layer%kz_h = (new_layer%k_t**2-k_rho**2/new_layer%nu_h)**0.5
+        new_layer%k_t = k_0 * ((new_layer%eps_t * new_layer%mu_t)** 0.5)
+        new_layer%kz_e = (new_layer%k_t**2.0-(k_rho**2.0)/new_layer%nu_e)**0.5
+        new_layer%kz_h = (new_layer%k_t**2.0-(k_rho**2.0)/new_layer%nu_h)**0.5
         new_layer%P_n(1,1) = EXP(-1*(0.0,1.0)*new_layer%kz_e*new_layer%d)
         new_layer%P_n(1,2) = (0.0,0.0)
         new_layer%P_n(2,1) = (0.0,0.0)

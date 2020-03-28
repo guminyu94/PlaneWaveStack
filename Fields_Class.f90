@@ -58,6 +58,7 @@
         S_matrices_Cascaded = S_Matrices_Cascade(S_matrices_in, 1, n_S_matrices)
         trans_ref_coeff(1,:,:) = S_matrices_Cascaded%delta_n
         trans_ref_coeff(2,:,:) = S_matrices_Cascaded%alpha_n
+        read(*,*)
     end function trans_ref_coeff_freespace
     
     ! tx and ref coeff of last layer with PEC backed

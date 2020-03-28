@@ -39,20 +39,20 @@ Module S_Matrix_Class
         implicit none 
         Type(Layer), intent(in) :: layer_n_in, layer_n_1_in
         S_Matrix_initalization%alpha_n = (-1.0 * unit_matrix + 2.0 * ( unit_matrix + layer_n_in%Z_n * (layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1.0 ) * layer_n_in%P_n
-        print*, layer_n_in%Z_n * (layer_n_1_in%Y_n + layer_n_in%sigma_n)
-        S_Matrix_initalization%delta_n = 2.0 * ( unit_matrix + layer_n_in%Z_n * (layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1.0 * layer_n_in%P_n
-        S_Matrix_initalization%gamma_n = (unit_matrix - (unit_matrix + layer_n_in%Z_n * (layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1 * (unit_matrix - layer_n_in%Z_n * (layer_n_1_in%Y_n - layer_n_in%sigma_n)) ) * layer_n_1_in%P_n
-        S_Matrix_initalization%beta_n =  -1.0 * (unit_matrix + layer_n_in%Z_n * (layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1.0 * (unit_matrix - layer_n_in%Z_n * (layer_n_1_in%Y_n - layer_n_in%sigma_n)) * layer_n_1_in%P_n
+        S_Matrix_initalization%delta_n = 2.0 * (( unit_matrix + layer_n_in%Z_n * (layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1.0) * layer_n_in%P_n
+        S_Matrix_initalization%gamma_n = (unit_matrix - ( (unit_matrix + layer_n_in%Z_n * (layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1.0 )* (unit_matrix - layer_n_in%Z_n * (layer_n_1_in%Y_n - layer_n_in%sigma_n)) ) * layer_n_1_in%P_n
+        S_Matrix_initalization%beta_n =  -1.0 * ( (unit_matrix + layer_n_in%Z_n * (layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1.0) * (unit_matrix - layer_n_in%Z_n * (layer_n_1_in%Y_n - layer_n_in%sigma_n)) * layer_n_1_in%P_n
+        print*, (S_Matrix_initalization%beta_n)
     end function S_Matrix_initalization
     
     ! opertor override, star product function for S matrix
     Type(S_Matrix) function star_product(S_Matrix_l, S_Matrix_r)
         implicit none
         Type(S_Matrix), intent(in) :: S_Matrix_l, S_Matrix_r   
-        star_product%alpha_n =  S_Matrix_l%alpha_n + S_Matrix_l%gamma_n * S_Matrix_r%alpha_n * (unit_matrix - S_Matrix_l%beta_n * S_Matrix_r%alpha_n)**-1 * S_Matrix_l%delta_n
-        star_product%gamma_n = S_Matrix_l%gamma_n * (unit_matrix - S_Matrix_r%alpha_n * S_Matrix_l%beta_n)**-1 * S_Matrix_r%gamma_n
-        star_product%delta_n = S_Matrix_r%delta_n * (unit_matrix - S_Matrix_l%beta_n * S_Matrix_r%alpha_n)**-1 * S_Matrix_l%delta_n
-        star_product%beta_n =  S_Matrix_r%beta_n + S_Matrix_r%delta_n * S_Matrix_l%beta_n * (unit_matrix - S_Matrix_r%alpha_n * S_Matrix_l%beta_n)**-1 * S_Matrix_r%gamma_n
+        star_product%alpha_n =  S_Matrix_l%alpha_n + S_Matrix_l%gamma_n * S_Matrix_r%alpha_n * ((unit_matrix - S_Matrix_l%beta_n * S_Matrix_r%alpha_n)**-1.0) * S_Matrix_l%delta_n
+        star_product%gamma_n = S_Matrix_l%gamma_n * ((unit_matrix - S_Matrix_r%alpha_n * S_Matrix_l%beta_n)**-1.0) * S_Matrix_r%gamma_n
+        star_product%delta_n = S_Matrix_r%delta_n * ((unit_matrix - S_Matrix_l%beta_n * S_Matrix_r%alpha_n)**-1.0) * S_Matrix_l%delta_n
+        star_product%beta_n =  S_Matrix_r%beta_n + S_Matrix_r%delta_n * S_Matrix_l%beta_n * ((unit_matrix - S_Matrix_r%alpha_n * S_Matrix_l%beta_n)**-1.0) * S_Matrix_r%gamma_n
     end function star_product
     
     ! cascade S matrix
@@ -84,12 +84,11 @@ Module S_Matrix_Class
         complex, dimension(2,2), intent(in) :: matrix_in
         complex, dimension(2,2)  :: diagonal_inversed_matrix
         real, intent(in) :: power
-        print *, "diagonal matrix inversion"
             ! confirm it's a diagonal matrix
         if ((matrix_in(1,2) .EQ. (0.0,0.0)) .AND. (matrix_in(2,1) .EQ. (0.0,0.0))) then
             diagonal_inversed_matrix(1,1) = matrix_in(1,1)**power
-            diagonal_inversed_matrix(1,2) = 0
-            diagonal_inversed_matrix(2,1) = 0
+            diagonal_inversed_matrix(1,2) = 0.0
+            diagonal_inversed_matrix(2,1) = 0.0
             diagonal_inversed_matrix(2,2) = matrix_in(2,2)**power
         else
             diagonal_inversed_matrix(1,1) = matrix_in(1,1)**power
