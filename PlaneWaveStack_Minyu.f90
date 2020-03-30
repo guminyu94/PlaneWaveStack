@@ -12,13 +12,13 @@
 !   PURPOSE:  Main Program
 !   1. Data IO 
 !   2. Build layers and S matrix objs 
-!   3. Cascade S matrices with star product and build fields vector
+!   3. Cascade S matrices with star product and compute fields vector
 !   
+    
 !
 !****************************************************************************
 
-program PlaneWaveStack_Minyu
-
+Program PlaneWaveStack_Minyu
     use Sim_parameters
     use Layer_Class
     use S_Matrix_Class
@@ -26,14 +26,15 @@ program PlaneWaveStack_Minyu
     implicit none    
     
     integer :: n_layers, i
-    complex, allocatable :: eps_t(:), mu_t(:), sigma_x(:), sigma_y(:), nu_e(:), nu_h(:)
-    real, allocatable :: d(:)
-    real :: freq_in
+    complex(wp), allocatable :: eps_t(:), mu_t(:), sigma_x(:), sigma_y(:), nu_e(:), nu_h(:)
+    real(wp), allocatable :: d(:)
+    real(wp) :: freq_in
     type(Layer), allocatable :: layers(:)
     type(S_Matrix), allocatable :: S_Matrices(:)
     integer :: isPecBacked
     type(Fields) :: inc_Fields
-    complex, dimension(2,2,2) :: tx_ref  
+    complex(wp), dimension(2,2,2) :: tx_ref  
+    
     
     print *, "Number of Layers"
     read (*,*) n_layers
@@ -56,7 +57,6 @@ program PlaneWaveStack_Minyu
     
     ! update constant paramters
     call update_freq(freq_in)
-    print *, lambda_0
      
     ! is pec backed ?
     print *, "Input 1 if PEC Backed"
@@ -68,20 +68,20 @@ program PlaneWaveStack_Minyu
             print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotropic ratio), first layer"
             read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i)
             ! for first layer, d is not necessary
-            layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), (1.0,1.0), (1.0,1.0), 0.0)
+            layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), (1.0_wp,1.0_wp), (1.0_wp,1.0_wp), 0.0_wp)
             
         else if (i .EQ. n_layers) then
-            ! check if bakced by PEC
+            ! if bakced by PEC
             if (isPecBacked .EQ. 1) then
                 print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), thickness"
                 read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i), d(i)
-                ! readin layers' parameters, and assemble layer obj
-                layers(i)=Layer(eps_t(i), mu_t(i), (0.0,0.0), (0.0,0.0), nu_e(i), nu_h(i), d(i))
+                ! readin layers' parameters, omit sigma
+                layers(i)=Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), d(i))
             else
                 print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), last layer"
                 read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i)
-                ! readin layers' parameters, and assemble layer obj
-                layers(i)=Layer(eps_t(i), mu_t(i), (0.0,0.0), (0.0,0.0), nu_e(i), nu_h(i), 0.0)
+                ! readin layers' parameters, omit sigma and thickness
+                layers(i)=Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0,0.0_wp), nu_e(i), nu_h(i), 0.0_wp)
             end if
         else
             print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotropic ratio), thickness"
