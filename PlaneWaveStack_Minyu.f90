@@ -23,6 +23,7 @@ Program PlaneWaveStack_Minyu
     use Layer_Class
     use S_Matrix_Class
     use Fields_Class
+    use GrapheneSig
     implicit none    
     
     integer :: n_layers, i
@@ -33,7 +34,9 @@ Program PlaneWaveStack_Minyu
     type(S_Matrix), allocatable :: S_Matrices(:)
     integer :: isPecBacked
     type(Fields) :: inc_Fields
-    complex(wp), dimension(2,2,2) :: tx_ref  
+    complex(wp), dimension(2,2,2) :: tx_ref
+    complex :: sigd_1, sigh_1
+    integer :: nd_1, nh_1
     
     
     print *, "Number of Layers"
@@ -49,9 +52,14 @@ Program PlaneWaveStack_Minyu
     allocate(layers(n_layers))
     allocate(S_Matrices(n_layers-1))
     
+    
     ! input frequency   
     print *, "Frequency"
     read (*,*) freq_in
+    
+    call sigmas(real(freq_in),sigd_1,sigh_1,nd_1,nh_1)
+    
+    print*, sigd_1*eta_0, (0.0,1.0)*sigh_1*eta_0
     print *, "k_rho"
     read (*,*) k_rho
     
@@ -91,19 +99,19 @@ Program PlaneWaveStack_Minyu
         end if
     end do
     
-    print *, "S_Matrix: "
    do i = 1, n_layers-1
     ! assemble S Matrix from layer obj
        S_Matrices(i)=S_Matrix(layers(i),layers(i+1))
-       call print_S_matrix(S_Matrices(i))
+    !  call print_S_matrix(S_Matrices(i))
    end do
    
    ! obtain reflection coeff
    tx_ref = trans_ref_coeff_freespace(S_Matrices)
-   print *, tx_ref(1,1:2,1:2), tx_ref(2,1:2,1:2)
+   print *, "tx_coeff"
+   print *, tx_ref(1,1:2,1:2)
+   print *, "ref_coeff"
+   print *, tx_ref(2,1:2,1:2)
    
-   
-    
     ! end
     print *, 'End of Program, Type in Any Key to Exit'
     read (*,*)

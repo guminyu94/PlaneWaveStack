@@ -27,6 +27,11 @@
 		<Filter Name="Header Files" Filter="fi;fd"/>
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
+		<Filter Name="graphen_sig">
+		<File RelativePath=".\graphen_sig\constants.f90"/>
+		<File RelativePath=".\graphen_sig\fermipass.f90"/>
+		<File RelativePath=".\graphen_sig\graphene.f90"/>
+		<File RelativePath=".\graphen_sig\GrapheneSig.f90"/></Filter>
 		<File RelativePath=".\Fields_Class.f90"/>
 		<File RelativePath=".\Layer_Class.f90"/>
 		<File RelativePath=".\Math.f90"/>
