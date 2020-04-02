@@ -32,6 +32,8 @@
 		<File RelativePath=".\graphen_sig\fermipass.f90"/>
 		<File RelativePath=".\graphen_sig\graphene.f90"/>
 		<File RelativePath=".\graphen_sig\GrapheneSig.f90"/></Filter>
+		<Filter Name="configuration">
+		<File RelativePath=".\Otto.f90"/></Filter>
 		<File RelativePath=".\Fields_Class.f90"/>
 		<File RelativePath=".\Layer_Class.f90"/>
 		<File RelativePath=".\Math.f90"/>

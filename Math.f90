@@ -6,12 +6,11 @@
 !
 !****************************************************************************
 Module Math
-    use Sim_parameters, only : wp
+    use Sim_parameters, only : wp, PI
     implicit none
     public
     complex(wp), dimension(2,2), parameter :: unit_matrix=(/(1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(1.0_wp,0.0_wp)/)
-    real(wp), parameter :: PI = 3.14159265358979_wp
-    
+
     interface operator(*)
         procedure :: matrix_vector_product
     end interface operator(*)

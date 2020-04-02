@@ -17,6 +17,6 @@ module graphene
 
     real, parameter :: kbt=kB*tK
     
-    real, parameter :: b0 = 3
+    real, parameter :: b0 = 5
     
 end module graphene

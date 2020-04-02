@@ -18,99 +18,166 @@
 !
 !****************************************************************************
 
-Program PlaneWaveStack_Minyu
+Program PlaneWaveStack_Minyu  
     use Sim_parameters
     use Layer_Class
+    use GrapheneSig
     use S_Matrix_Class
     use Fields_Class
-    use GrapheneSig
+    use Otto
     implicit none    
     
-    integer :: n_layers, i
-    complex(wp), allocatable :: eps_t(:), mu_t(:), sigma_x(:), sigma_y(:), nu_e(:), nu_h(:)
-    real(wp), allocatable :: d(:)
-    real(wp) :: freq_in
     type(Layer), allocatable :: layers(:)
     type(S_Matrix), allocatable :: S_Matrices(:)
-    integer :: isPecBacked
     type(Fields) :: inc_Fields
+    
+    integer :: use_saved_config
+    integer :: isPecBacked
+    integer :: isGraphene = 0
+    integer :: addSheet = 0
+    integer :: i = 0
+    
     complex(wp), dimension(2,2,2) :: tx_ref
-    complex :: sigd_1, sigh_1
-    integer :: nd_1, nh_1
+    !integer, dimension(2) :: array_test = (/1,2/)
     
+    !print*, array_test
     
-    print *, "Number of Layers"
-    read (*,*) n_layers
+
+    ! *, "Use Saved configure"
+    !read (*,*) use_saved_config
+    use_saved_config = 1
+        
+    if (use_saved_config .EQ. 1) then
+        call Otto_config(3.61E12_wp, layers)
+    else
+        print *, "Number of Layers"
+        read (*,*) n_layers
+        
+        allocate(eps_t(n_layers))
+        allocate(mu_t(n_layers))
+        allocate(sigma_x(n_layers))
+        allocate(sigma_y(n_layers))
+        allocate(d(n_layers))
+        allocate(nu_e(n_layers))
+        allocate(nu_h(n_layers))
+        allocate(layers(n_layers))
+        allocate(S_Matrices(n_layers-1))
+        allocate(sigma_xy(n_layers))
+        allocate(sigma_yx(n_layers))
     
-    allocate(eps_t(n_layers))
-    allocate(mu_t(n_layers))
-    allocate(sigma_x(n_layers))
-    allocate(sigma_y(n_layers))
-    allocate(d(n_layers))
-    allocate(nu_e(n_layers))
-    allocate(nu_h(n_layers))
-    allocate(layers(n_layers))
-    allocate(S_Matrices(n_layers-1))
+       ! input frequency   
+        print *, "Frequency"
+        read (*,*) freq
     
+        print *, "theta(degree)"
+        read (*,*) theta
+        
+        print *, "xi(degree)"
+        read (*,*) xi
+
+        ! update constant paramters
+        call update_freq(freq)
     
-    ! input frequency   
-    print *, "Frequency"
-    read (*,*) freq_in
-    
-    call sigmas(real(freq_in),sigd_1,sigh_1,nd_1,nh_1)
-    
-    print*, sigd_1*eta_0, (0.0,1.0)*sigh_1*eta_0
-    print *, "k_rho"
-    read (*,*) k_rho
-    
-    ! update constant paramters
-    call update_freq(freq_in)
-     
-    ! is pec backed ?
-    print *, "Input 1 if PEC Backed"
-    read(*,*) isPecBacked 
-    
-    ! input layered parameters
-    do i = 1, n_layers
-        if (i .EQ. 1) then
-            print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotropic ratio), first layer"
-            read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i)
-            ! for first layer, d is not necessary
-            layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), (1.0_wp,1.0_wp), (1.0_wp,1.0_wp), 0.0_wp)
-            
-        else if (i .EQ. n_layers) then
-            ! if bakced by PEC
-            if (isPecBacked .EQ. 1) then
-                print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), thickness"
-                read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i), d(i)
-                ! readin layers' parameters, omit sigma
-                layers(i)=Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), d(i))
-            else
-                print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), last layer"
-                read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i)
-                ! readin layers' parameters, omit sigma and thickness
-                layers(i)=Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0,0.0_wp), nu_e(i), nu_h(i), 0.0_wp)
-            end if
-        else
-            print *, i, "th: ", "eps, mu, sigma_x, sigma_y, nu_e, nu_h (anisotropic ratio), thickness"
-            read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i)
-            ! readin layers' parameters, and assemble layer obj
-            layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), nu_e(i), nu_h(i), d(i))            
+        ! Using subroutine to compute graphene sigma tensor ?
+        print *, "Input 1 if Using Graphene"
+        read(*,*) isGraphene
+        if (isGraphene .EQ. 1) then
+            call sigmas(real(freq),sig_d,sig_h,n_d,n_h)
+            sigxx = CMPLX(sig_d,wp)
+            sigyy = CMPLX(sig_d,wp)
+            sigyx = CMPLX(sig_h,wp)
+            sigxy = CMPLX(-sig_h,wp)
         end if
-    end do
+       
+       
+       ! input layered parameters
+        do i = 1, n_layers
+            ! fisrt layer
+            if (i .EQ. 1) then
+                ! if use graphene
+                if (isGraphene .EQ. 1) then
+                    print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), first layer"
+                    ! for first layer, d is not necessary
+                   read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i)
+                   ! update k_rho
+                    k_rho = k_0*((eps_t(i)*mu_t(i))**0.5_wp)*SIN(theta/180.0_wp*PI)
+                    print *, "Add graphene ?"
+                    read(*,*) addSheet
+                    if (addSheet .EQ. 1) then
+                        ! add a sheet of graphen
+                        layers(i)=Layer(eps_t(i), mu_t(i), sigxx, sigyy, sigxy, sigyx, nu_e(i), nu_h(i), 0.0_wp)
+                    else
+                       layers(i)=Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), 0.0_wp)
+                    end if
+               else
+                    ! input sigma 
+                    print *, i, "th: ", "eps, mu, sigma_x, sigma_y, sigma_xy, sigma_yx, nu_e, nu_h (anisotropic ratio), first layer"
+                    read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), sigma_xy(i), sigma_yx(i), nu_e(i), nu_h(i)
+                    ! update k_rho
+                    k_rho = k_0*((eps_t(i)*mu_t(i))**0.5_wp)*SIN(theta/180.0_wp*PI)
+                    ! for first layer, d is not necessary
+                    layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), sigma_xy(i), sigma_yx(i), nu_e(i), nu_h(i), 0.0_wp)
+               end if
+            ! last layer
+           else if (i .EQ. n_layers) then
+               ! is pec backed ?
+                print *, "Input 1 if PEC Backed"
+                read(*,*) isPecBacked 
+                ! if bakced by PEC
+                if (isPecBacked .EQ. 1) then
+                    print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), thickness"
+                    read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i), d(i)
+                    ! readin layers' parameters, omit sigma
+                    layers(i)=Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), d(i))
+                else
+                    print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), last layer"
+                    read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i)
+                   ! readin layers' parameters, omit sigma and thickness
+                    layers(i)=Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), 0.0_wp)
+                end if
+            ! layers in the middle
+            else
+                ! if use graphene
+                if (isGraphene .EQ. 1) then
+                    print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), thickness"
+                   read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i), d(i)
+                    print *, "Add graphene ?"
+                    read(*,*) addSheet
+                    if (addSheet .EQ. 1) then
+                        ! add a sheet of graphen
+                        layers(i) = Layer(eps_t(i), mu_t(i), sigxx, sigyy, sigxy, sigyx, nu_e(i), nu_h(i), d(i))
+                    else
+                        layers(i) = Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), d(i))
+                    end if
+                else
+                    ! input sigma 
+                    print *, i, "th: ", "eps, mu, sigma_x, sigma_y, sigma_xy, sigma_yx, nu_e, nu_h (anisotropic ratio), thickness"
+                    read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), sigma_xy(i), sigma_yx(i), nu_e(i), nu_h(i), d(i)
+                    layers(i) = Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), sigma_xy(i), sigma_yx(i), nu_e(i), nu_h(i), d(i))
+                end if     
+            end if
+        end do
+    end if
     
-   do i = 1, n_layers-1
+    allocate(S_Matrices(n_layers-1))
+    do i = 1, n_layers-1
     ! assemble S Matrix from layer obj
-       S_Matrices(i)=S_Matrix(layers(i),layers(i+1))
+       S_Matrices(i) = S_Matrix(layers(i),layers(i+1))
     !  call print_S_matrix(S_Matrices(i))
-   end do
+    end do
    
    ! obtain reflection coeff
    tx_ref = trans_ref_coeff_freespace(S_Matrices)
-   print *, "tx_coeff"
-   print *, tx_ref(1,1:2,1:2)
-   print *, "ref_coeff"
-   print *, tx_ref(2,1:2,1:2)
+
+    print *, "|tx_coeff_ee|^2"
+    print *, ABS(tx_ref(1,1,1))**2.0_wp
+    print *, "|tx_coeff_eh|^2"
+    print *, ABS(tx_ref(1,1,2))**2.0_wp
+    print *, "|ref_coeff_ee|^2"
+    print *, ABS(tx_ref(2,1,1))**2.0_wp
+    print *, "|ref_coeff_hh|^2"
+    print *, ABS(tx_ref(2,2,2))**2.0_wp
+
    
     ! end
     print *, 'End of Program, Type in Any Key to Exit'

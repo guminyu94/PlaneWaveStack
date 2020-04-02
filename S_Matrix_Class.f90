@@ -34,20 +34,20 @@ Module S_Matrix_Class
     Type(S_Matrix) function S_Matrix_initalization(layer_n_in,layer_n_1_in)
         implicit none 
         Type(Layer), intent(in) :: layer_n_in, layer_n_1_in
-        S_Matrix_initalization%alpha_n = MATMUL( -1.0_wp * unit_matrix + 2.0_wp * ( ( unit_matrix + MATMUL(layer_n_in%Z_n , (layer_n_1_in%Y_n + layer_n_in%sigma_n)) )**-1 )  , layer_n_in%P_n )
-        S_Matrix_initalization%delta_n = 2.0_wp * MATMUL(( unit_matrix + MATMUL( layer_n_in%Z_n , (layer_n_1_in%Y_n + layer_n_in%sigma_n)))**-1 , layer_n_in%P_n)
-        S_Matrix_initalization%gamma_n = MATMUL( unit_matrix - MATMUL((unit_matrix + MATMUL( layer_n_in%Z_n , layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1 , unit_matrix - MATMUL( layer_n_in%Z_n , layer_n_1_in%Y_n - layer_n_in%sigma_n )), layer_n_1_in%P_n)
-        S_Matrix_initalization%beta_n =  -1.0_wp * MATMUL( MATMUL( (unit_matrix + MATMUL( layer_n_in%Z_n , layer_n_1_in%Y_n + layer_n_in%sigma_n ))**-1 , unit_matrix - MATMUl( layer_n_in%Z_n,  layer_n_1_in%Y_n - layer_n_in%sigma_n)) , layer_n_1_in%P_n)
+        S_Matrix_initalization%alpha_n = MATMUL( -1.0_wp * unit_matrix + 2.0_wp * ( ( unit_matrix + MATMUL(layer_n_in%Z_n , layer_n_1_in%Y_n + layer_n_in%sigma_n) )**-1 ), layer_n_in%P_n )
+        S_Matrix_initalization%delta_n = 2.0_wp * MATMUL(( unit_matrix + MATMUL( layer_n_in%Z_n, layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1, layer_n_in%P_n)
+        S_Matrix_initalization%gamma_n = MATMUL( unit_matrix - MATMUL((unit_matrix + MATMUL( layer_n_in%Z_n, layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1, unit_matrix - MATMUL( layer_n_in%Z_n, layer_n_1_in%Y_n - layer_n_in%sigma_n )), layer_n_1_in%P_n)
+        S_Matrix_initalization%beta_n =  -1.0_wp * MATMUL( MATMUL( (unit_matrix + MATMUL( layer_n_in%Z_n, layer_n_1_in%Y_n + layer_n_in%sigma_n ))**-1, unit_matrix - MATMUl( layer_n_in%Z_n,  layer_n_1_in%Y_n - layer_n_in%sigma_n)), layer_n_1_in%P_n)
     end function S_Matrix_initalization
     
     ! opertor override, star product function for S matrix
     pure Type(S_Matrix) function star_product(S_Matrix_l, S_Matrix_r)
         implicit none
         Type(S_Matrix), intent(in) :: S_Matrix_l, S_Matrix_r   
-        star_product%alpha_n = S_Matrix_l%alpha_n + MATMUL( MATMUL( MATMUL( S_Matrix_l%gamma_n , S_Matrix_r%alpha_n) , (unit_matrix - MATMUL( S_Matrix_l%beta_n, S_Matrix_r%alpha_n))**-1) , S_Matrix_l%delta_n)
-        star_product%gamma_n = MATMUL( MATMUL( S_Matrix_l%gamma_n , (unit_matrix - MATMUL( S_Matrix_r%alpha_n , S_Matrix_l%beta_n) )**-1 ) , S_Matrix_r%gamma_n )
-        star_product%delta_n = MATMUL( MATMUL( S_Matrix_r%delta_n , (unit_matrix - MATMUL( S_Matrix_l%beta_n , S_Matrix_r%alpha_n) )**-1 )  , S_Matrix_l%delta_n )
-        star_product%beta_n = S_Matrix_r%beta_n +  MATMUL( MATMUL( MATMUL( S_Matrix_r%delta_n , S_Matrix_l%beta_n ), (unit_matrix - MATMUL( S_Matrix_r%alpha_n , S_Matrix_l%beta_n))**-1), S_Matrix_r%gamma_n)
+        star_product%alpha_n = S_Matrix_l%alpha_n + MATMUL( MATMUL( MATMUL( S_Matrix_l%gamma_n , S_Matrix_r%alpha_n), (unit_matrix - MATMUL( S_Matrix_l%beta_n, S_Matrix_r%alpha_n))**-1), S_Matrix_l%delta_n)
+        star_product%gamma_n = MATMUL( MATMUL( S_Matrix_l%gamma_n, (unit_matrix - MATMUL( S_Matrix_r%alpha_n , S_Matrix_l%beta_n) )**-1 ), S_Matrix_r%gamma_n )
+        star_product%delta_n = MATMUL( MATMUL( S_Matrix_r%delta_n, (unit_matrix - MATMUL( S_Matrix_l%beta_n , S_Matrix_r%alpha_n) )**-1 ), S_Matrix_l%delta_n )
+        star_product%beta_n = S_Matrix_r%beta_n +  MATMUL( MATMUL( MATMUL( S_Matrix_r%delta_n, S_Matrix_l%beta_n ), (unit_matrix - MATMUL( S_Matrix_r%alpha_n , S_Matrix_l%beta_n))**-1), S_Matrix_r%gamma_n)
     end function star_product
     
     ! cascade S matrix

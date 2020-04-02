@@ -9,11 +9,18 @@ Module Sim_parameters
     implicit none
     public
     
-    ! define the precision
+    ! define the precision and constant
     integer, parameter :: wp = KIND(0.0d0)
     real(wp) :: freq, k_0, lambda_0, omega
     real(wp), parameter :: eps_0 = 8.85E-12_wp, mu_0 = 1.257E-6_wp, c_0 = 2.998E8_wp, eta_0 = 376.730313_wp, PI = 3.14159265358979_wp
     complex(wp) :: k_rho
+    
+    ! define model varaiables 
+    complex(wp), allocatable :: eps_t(:), mu_t(:), sigma_x(:), sigma_y(:), nu_e(:), nu_h(:), sigma_xy(:), sigma_yx(:)
+    real(wp), allocatable :: d(:)
+    real(wp) :: theta
+    real(wp) :: xi
+    integer :: n_layers
     
     contains
     subroutine update_freq(freq_in)

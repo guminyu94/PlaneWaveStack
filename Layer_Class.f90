@@ -6,7 +6,7 @@
 !
 !****************************************************************************
 Module Layer_Class
-    use Sim_parameters, only : eta_0, k_0, k_rho, wp
+    use Sim_parameters, only : eta_0, k_0, k_rho, wp, xi
     use Math, only : PI
     implicit none    
     
@@ -27,9 +27,9 @@ Module Layer_Class
     
     ! constr function of Layer type
     ! calculate the rest of paramters based on eps, mu, and sigma
-    function  initalize_layer(eps_t_in, mu_t_in, sigma_x_in, sigma_y_in, nu_e_in, nu_h_in, d_in) result(new_layer)
+    function  initalize_layer(eps_t_in, mu_t_in, sigma_x_in, sigma_y_in, sigma_xy_in, sigma_yx_in ,nu_e_in, nu_h_in, d_in) result(new_layer)
         implicit none
-        complex(wp), intent(in) :: eps_t_in, mu_t_in, sigma_x_in, sigma_y_in, nu_e_in, nu_h_in
+        complex(wp), intent(in) :: eps_t_in, mu_t_in, sigma_x_in, sigma_y_in, nu_e_in, nu_h_in, sigma_xy_in, sigma_yx_in
         real(wp), intent(in) :: d_in
         type(Layer) :: new_layer
     
@@ -39,12 +39,23 @@ Module Layer_Class
         new_layer%nu_h = nu_h_in
         new_layer%d = d_in
         
-        new_layer%sigma_n = sigma_n_uv(sigma_x_in, sigma_y_in, (0.0_wp,0.0_wp), (0.0_wp,0.0_wp))
+        new_layer%sigma_n = sigma_n_uv(sigma_x_in, sigma_y_in, sigma_xy_in, sigma_yx_in)
        
         new_layer%k_t = k_0 * ((new_layer%eps_t * new_layer%mu_t)**0.5_wp)
+        if (aimag(new_layer%k_t)>0.0) then
+            new_layer%k_t = -new_layer%k_t
+        end if
         new_layer%kz_e = (new_layer%k_t**2.0_wp-(k_rho**2.0_wp)/new_layer%nu_e)**0.5_wp
+        ! choose top sheet 
+        if (aimag(new_layer%kz_e)>0.0_wp) then 
+            new_layer%kz_e=-new_layer%kz_e 
+        end if
         new_layer%kz_h = (new_layer%k_t**2.0_wp-(k_rho**2.0_wp)/new_layer%nu_h)**0.5_wp
-        new_layer%P_n(1,1) = EXP(-1*(0.0_wp,1.0_wp)*new_layer%kz_e*new_layer%d)
+        if (aimag(new_layer%kz_h)>0.0_wp) then 
+            new_layer%kz_h=-new_layer%kz_h 
+        end if
+        
+        new_layer%P_n(1,1) = EXP(-1.0_wp*(0.0_wp,1.0_wp)*new_layer%kz_e*new_layer%d)
         new_layer%P_n(1,2) = (0.0_wp,0.0_wp)
         new_layer%P_n(2,1) = (0.0_wp,0.0_wp)
         new_layer%P_n(2,2) = EXP(-1.0_wp*(0.0_wp,1.0_wp)*new_layer%kz_h*new_layer%d)
@@ -77,22 +88,15 @@ Module Layer_Class
     function sigma_n_uv(sigma_xx_in, sigma_yy_in, sigma_xy_in, sigma_yx_in) result(sigma_n)
         complex(wp), intent(in) :: sigma_xx_in, sigma_yy_in, sigma_xy_in, sigma_yx_in
         complex(wp), dimension(2,2) :: sigma_n
-        real(wp) :: eta, sineta, coseta, sinetasqr, cosetasqr
-        if (REAL(k_rho) .EQ. 0.0_wp) then 
-            eta = 0.0_wp
-        else if (REAL(k_rho) > 0.0_wp) then 
-            eta = ATAN(AIMAG(k_rho) / REAL(k_rho) )
-        else
-            eta = PI - ATAN(AIMAG(k_rho) / REAL(k_rho) )
-        end if
-        sineta = SIN(eta)
-        coseta = COS(eta)
-        sinetasqr = sineta**2.0_wp
-        cosetasqr = coseta**2.0_wp
-        sigma_n(1,1) = sigma_xx_in * cosetasqr + sigma_yy_in * sinetasqr + (sigma_xy_in + sigma_yx_in) * coseta * sineta
-        sigma_n(1,2) = sigma_xy_in * cosetasqr - sigma_yx_in * sinetasqr - (sigma_xx_in - sigma_yy_in) * coseta * sineta
-        sigma_n(2,1) = sigma_yx_in * cosetasqr - sigma_xy_in * sinetasqr - (sigma_xx_in - sigma_yy_in) * coseta * sineta
-        sigma_n(2,2) = sigma_yy_in * cosetasqr + sigma_xx_in * sinetasqr - (sigma_xy_in + sigma_yx_in) * coseta * sineta
+        real(wp) :: sinxi, cosxi, sinxisqr, cosxisqr
+        sinxi = SIN(xi/180.0*PI)
+        cosxi = COS(xi/180.0*PI)
+        sinxisqr = sinxi**2.0_wp
+        cosxisqr = cosxi**2.0_wp
+        sigma_n(1,1) = sigma_xx_in * cosxisqr + sigma_yy_in * sinxisqr + (sigma_xy_in + sigma_yx_in) * cosxi * sinxi
+        sigma_n(1,2) = sigma_xy_in * cosxisqr - sigma_yx_in * sinxisqr - (sigma_xx_in - sigma_yy_in) * cosxi * sinxi
+        sigma_n(2,1) = sigma_yx_in * cosxisqr - sigma_xy_in * sinxisqr - (sigma_xx_in - sigma_yy_in) * cosxi * sinxi
+        sigma_n(2,2) = sigma_yy_in * cosxisqr + sigma_xx_in * sinxisqr - (sigma_xy_in + sigma_yx_in) * cosxi * sinxi
     end function sigma_n_uv
     
     

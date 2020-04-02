@@ -1,9 +1,15 @@
 module GrapheneSig
-
+use Sim_parameters, only : wp
 implicit none
+private
+public :: sigmas
 
-    contains
+! graphene computation
+complex, public :: sig_d, sig_h
+complex(wp), public :: sigxx, sigyy, sigxy, sigyx
+integer, public :: n_d, n_h
 
+contains
 
 subroutine sigmas(freq,sigd,sigh,nd,nh)
 
