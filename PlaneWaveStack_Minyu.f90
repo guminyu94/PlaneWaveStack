@@ -24,12 +24,9 @@ Program PlaneWaveStack_Minyu
     use GrapheneSig
     use S_Matrix_Class
     use Fields_Class
-    use Otto
+    use JQSRT_case_2
+    use Swapper
     implicit none    
-    
-    type(Layer), allocatable :: layers(:)
-    type(S_Matrix), allocatable :: S_Matrices(:)
-    type(Fields) :: inc_Fields
     
     integer :: use_saved_config
     integer :: isPecBacked
@@ -37,18 +34,16 @@ Program PlaneWaveStack_Minyu
     integer :: addSheet = 0
     integer :: i = 0
     
+    procedure(fun_temp), pointer :: fun_p
     complex(wp), dimension(2,2,2) :: tx_ref
-    !integer, dimension(2) :: array_test = (/1,2/)
     
-    !print*, array_test
-    
-
     ! *, "Use Saved configure"
     !read (*,*) use_saved_config
     use_saved_config = 1
         
     if (use_saved_config .EQ. 1) then
-        call Otto_config(3.61E12_wp, layers)
+        fun_p => JQSRT_case_2_config
+        call freq_swap(fun_P,0.1_wp,10E12_wp,1000,'data/tx_ee_case_2.dat')
     else
         print *, "Number of Layers"
         read (*,*) n_layers
@@ -158,25 +153,7 @@ Program PlaneWaveStack_Minyu
             end if
         end do
     end if
-    
-    allocate(S_Matrices(n_layers-1))
-    do i = 1, n_layers-1
-    ! assemble S Matrix from layer obj
-       S_Matrices(i) = S_Matrix(layers(i),layers(i+1))
-    !  call print_S_matrix(S_Matrices(i))
-    end do
-   
-   ! obtain reflection coeff
-   tx_ref = trans_ref_coeff_freespace(S_Matrices)
 
-    print *, "|tx_coeff_ee|^2"
-    print *, ABS(tx_ref(1,1,1))**2.0_wp
-    print *, "|tx_coeff_eh|^2"
-    print *, ABS(tx_ref(1,1,2))**2.0_wp
-    print *, "|ref_coeff_ee|^2"
-    print *, ABS(tx_ref(2,1,1))**2.0_wp
-    print *, "|ref_coeff_hh|^2"
-    print *, ABS(tx_ref(2,2,2))**2.0_wp
 
    
     ! end
