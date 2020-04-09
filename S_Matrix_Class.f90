@@ -57,10 +57,14 @@ Module S_Matrix_Class
         integer, intent(in) :: start_index, end_index
         Type(S_Matrix) :: S_matrices_Cascaded
         integer :: i
-        S_matrices_Cascaded = S_Matrices(start_index)
-        do i = start_index+1, end_index
-            S_matrices_Cascaded = S_matrices_Cascaded * S_Matrices(i)
-        end do
+        if (start_index .EQ. end_index) then
+            S_matrices_Cascaded = S_Matrices(start_index)
+        else 
+            S_matrices_Cascaded = S_Matrices(start_index)
+            do i = start_index+1, end_index
+                S_matrices_Cascaded = S_matrices_Cascaded * S_Matrices(i)
+            end do
+        end if
     end function
     
     ! print S matrix

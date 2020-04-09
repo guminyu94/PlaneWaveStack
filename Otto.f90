@@ -1,19 +1,25 @@
 Module Otto
     contains
-    subroutine otto_config(freq_in,layers)
+    subroutine otto_config(freq_in,layers,inc_field)
         use Sim_parameters
         use Layer_Class
         use GrapheneSig
+        use Fields_Class
         implicit none   
         real(wp), intent(in) :: freq_in
         type(Layer), allocatable, intent(inout) :: layers(:)
+        type(Fields), intent(inout) :: inc_field
         
         call update_freq(freq_in)
-        n_layers = 5
-        allocate(layers(n_layers))
+        if (.NOT. allocated(layers)) then
+            n_layers = 5
+            allocate(layers(n_layers))
+        end if
         
         xi = 0.0_wp
         theta = 60.0_wp
+    
+        inc_field  = Fields((0.5_wp,0.0_wp),(0.1_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp))
         
         ! update constant paramters
         call sigmas(real(freq_in),sig_d,sig_h,n_d,n_h)

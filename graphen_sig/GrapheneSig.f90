@@ -146,7 +146,7 @@ do n=1,nmax
 
     end if
 
-    if(abs(s-sold)<eps*abs(s))exit
+    if(abs(s-sold) < eps*abs(s))exit
     
     sold=s
 

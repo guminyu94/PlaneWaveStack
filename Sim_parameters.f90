@@ -18,8 +18,7 @@ Module Sim_parameters
     ! define model varaiables 
     complex(wp), allocatable :: eps_t(:), mu_t(:), sigma_x(:), sigma_y(:), nu_e(:), nu_h(:), sigma_xy(:), sigma_yx(:)
     real(wp), allocatable :: d(:)
-    real(wp) :: theta
-    real(wp) :: xi
+    real(wp) :: theta, xi
     integer :: n_layers
     
     contains

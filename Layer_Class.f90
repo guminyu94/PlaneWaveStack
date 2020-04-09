@@ -23,6 +23,7 @@ Module Layer_Class
         procedure :: initalize_layer
     end interface Layer
     
+    
     contains
     
     ! constr function of Layer type

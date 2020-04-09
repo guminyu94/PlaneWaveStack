@@ -1,12 +1,14 @@
 module JQSRT_case_2
     contains
-    subroutine JQSRT_case_2_config(freq_in,layers_in)
+    subroutine JQSRT_case_2_config(freq_in,layers_in,inc_field)
         use Sim_parameters
         use Layer_Class
         use GrapheneSig
+        use Fields_Class
         implicit none   
         real(wp), intent(in) :: freq_in
         type(Layer), allocatable, intent(inout) :: layers_in(:)
+        type(Fields), intent(inout) :: inc_field
         
         call update_freq(freq_in)
         if (.NOT. allocated(layers_in)) then

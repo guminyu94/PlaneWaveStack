@@ -25,6 +25,7 @@ Program PlaneWaveStack_Minyu
     use S_Matrix_Class
     use Fields_Class
     use JQSRT_case_2
+    use Otto
     use Swapper
     implicit none    
     
@@ -42,8 +43,10 @@ Program PlaneWaveStack_Minyu
     use_saved_config = 1
         
     if (use_saved_config .EQ. 1) then
-        fun_p => JQSRT_case_2_config
-        call freq_swap(fun_P,0.1_wp,10E12_wp,1000,'data/tx_ee_case_2.dat')
+        fun_p => otto_config
+        !call freq_swap(fun_p,3.271E12_wp,3.271E12_wp,1, 'data/txref_1t_otto')
+        call fields_computation(fun_p,3.271E12_wp, 10001, 'data/fields_1t_otto')
+        
     else
         print *, "Number of Layers"
         read (*,*) n_layers
