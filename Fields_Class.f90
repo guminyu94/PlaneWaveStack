@@ -31,7 +31,7 @@ Module Fields_Class
     function  Fields_initalization_1(Field_1_e, Field_1_h, Field_2_e, Field_2_h) result (field_out)
         implicit none
         complex(wp), intent(in) :: Field_1_e, Field_1_h, Field_2_e, Field_2_h
-        type(Fields), intent(out) :: field_out
+        type(Fields):: field_out
         field_out%Field_1(1) = Field_1_e
         field_out%Field_1(2) = Field_1_h
         field_out%Field_2(1) = Field_2_e

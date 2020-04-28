@@ -1,12 +1,10 @@
 module Constants
-
+use Math, only : PI
 implicit none
 
 real, parameter :: kb=8.6173303e-5 ! eV/K
 
 real, parameter :: hbar=6.582119514e-16 !eVs
-
-real, parameter :: pi=3.1415926535897932
 
 real, parameter :: twopi=6.283185307179586476925286766559005768394
 

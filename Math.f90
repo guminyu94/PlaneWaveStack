@@ -121,4 +121,14 @@ Module Math
         vector_out = MATMUL(matrix_l_in,vector_r_in)
    end function matrix_vector_product
   
+   ! compute the principal axis angle of ellipse
+   pure function ellipse_angle(Ex,Ey) result(theta)
+        complex(wp), intent(in) :: Ex, Ey
+        complex(wp) :: Eref
+        real(wp) :: theta, phi
+        Eref = Ex / Ey
+        phi = atan2(imag(Eref),real(Eref))
+        theta = atan2(2 * abs(Ex) * abs(Ey) * cos(phi), (abs(Ex)**2.0_wp - abs(Ey)**2.0_wp)) / 2.0_wp
+   end function ellipse_angle
+   
 end Module Math

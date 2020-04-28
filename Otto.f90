@@ -6,7 +6,7 @@ Module Otto
         use GrapheneSig
         use Fields_Class
         implicit none   
-        real(wp), intent(in) :: freq_in
+            real(wp), intent(in) :: freq_in
         type(Layer), allocatable, intent(inout) :: layers(:)
         type(Fields), intent(inout) :: inc_field
         
@@ -19,7 +19,7 @@ Module Otto
         xi = 0.0_wp
         theta = 60.0_wp
     
-        inc_field  = Fields((0.5_wp,0.0_wp),(0.1_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp))
+        inc_field  = Fields((0.5_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp))
         
         ! update constant paramters
         call sigmas(real(freq_in),sig_d,sig_h,n_d,n_h)
@@ -27,10 +27,10 @@ Module Otto
         sigyy = CMPLX(sig_d,wp)
         sigyx = CMPLX(sig_h,wp)
         sigxy = CMPLX(-sig_h,wp)
-        print*, "simga_d * eta_0"
-        print*, sig_d*eta_0
-        print*, "simga_h * jeta_0"
-        print*, sig_h*eta_0*(0.0,1.0)
+        !print*, "simga_d * eta_0"
+        !print*, sig_d*eta_0
+        !print*, "simga_h * jeta_0"
+        !print*, sig_h*eta_0*(0.0,1.0)
         k_rho = k_0*(12.0_wp**0.5_wp)*SIN(theta/180.0_wp*PI)
         
         layers(1)=Layer((12.0_wp,0.0_wp), (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)

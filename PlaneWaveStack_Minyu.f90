@@ -24,9 +24,8 @@ Program PlaneWaveStack_Minyu
     use GrapheneSig
     use S_Matrix_Class
     use Fields_Class
-    use JQSRT_case_2
-    use Otto
     use Swapper
+    use Black_Phosphorus
     implicit none    
     
     integer :: use_saved_config
@@ -39,13 +38,16 @@ Program PlaneWaveStack_Minyu
     complex(wp), dimension(2,2,2) :: tx_ref
     
     ! *, "Use Saved configure"
-    !read (*,*) use_saved_config
+    ! read (*,*) use_saved_config
     use_saved_config = 1
         
     if (use_saved_config .EQ. 1) then
-        fun_p => otto_config
-        !call freq_swap(fun_p,3.271E12_wp,3.271E12_wp,1, 'data/txref_1t_otto')
-        call fields_computation(fun_p,3.271E12_wp, 10001, 'data/fields_1t_otto')
+        ! assign config to swapper
+        fun_p => black_phosphorus_config
+        ! swap freq
+        call freq_swap(fun_p,0.6E12_wp,1.4E12_wp,501, 'data/rxref_bp')
+        ! plot field of a single freq
+        ! call fields_computation(fun_p,4.0E12_wp, 101, 'data/fields_1t_otto')
         
     else
         print *, "Number of Layers"
@@ -96,25 +98,25 @@ Program PlaneWaveStack_Minyu
                 if (isGraphene .EQ. 1) then
                     print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), first layer"
                     ! for first layer, d is not necessary
-                   read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i)
-                   ! update k_rho
-                    k_rho = k_0*((eps_t(i)*mu_t(i))**0.5_wp)*SIN(theta/180.0_wp*PI)
+                    read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i)
+                    ! update k_rho
+                    k_rho = k_0 * ((eps_t(i)*mu_t(i))**0.5_wp) * SIN(theta/180.0_wp*PI)
                     print *, "Add graphene ?"
                     read(*,*) addSheet
                     if (addSheet .EQ. 1) then
-                        ! add a sheet of graphen
-                        layers(i)=Layer(eps_t(i), mu_t(i), sigxx, sigyy, sigxy, sigyx, nu_e(i), nu_h(i), 0.0_wp)
+                        ! add a sheet of graphene
+                        layers(i) = Layer(eps_t(i), mu_t(i), sigxx, sigyy, sigxy, sigyx, nu_e(i), nu_h(i), 0.0_wp)
                     else
-                       layers(i)=Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), 0.0_wp)
+                       layers(i) = Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), 0.0_wp)
                     end if
                else
                     ! input sigma 
                     print *, i, "th: ", "eps, mu, sigma_x, sigma_y, sigma_xy, sigma_yx, nu_e, nu_h (anisotropic ratio), first layer"
                     read(*,*) eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), sigma_xy(i), sigma_yx(i), nu_e(i), nu_h(i)
                     ! update k_rho
-                    k_rho = k_0*((eps_t(i)*mu_t(i))**0.5_wp)*SIN(theta/180.0_wp*PI)
-                    ! for first layer, d is not necessary
-                    layers(i)=Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), sigma_xy(i), sigma_yx(i), nu_e(i), nu_h(i), 0.0_wp)
+                    k_rho = k_0 * ((eps_t(i)*mu_t(i))**0.5_wp) * SIN(theta/180.0_wp*PI)
+                    ! for first layer, d is not necessarys
+                    layers(i) = Layer(eps_t(i), mu_t(i), sigma_x(i), sigma_y(i), sigma_xy(i), sigma_yx(i), nu_e(i), nu_h(i), 0.0_wp)
                end if
             ! last layer
            else if (i .EQ. n_layers) then
@@ -126,19 +128,19 @@ Program PlaneWaveStack_Minyu
                     print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), thickness"
                     read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i), d(i)
                     ! readin layers' parameters, omit sigma
-                    layers(i)=Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), d(i))
+                    layers(i) = Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), d(i))
                 else
                     print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), last layer"
                     read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i)
                    ! readin layers' parameters, omit sigma and thickness
-                    layers(i)=Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), 0.0_wp)
+                    layers(i) = Layer(eps_t(i), mu_t(i), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), nu_e(i), nu_h(i), 0.0_wp)
                 end if
             ! layers in the middle
             else
                 ! if use graphene
                 if (isGraphene .EQ. 1) then
                     print *, i, "th: ", "eps, mu, nu_e, nu_h (anisotropic ratio), thickness"
-                   read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i), d(i)
+                    read(*,*) eps_t(i), mu_t(i), nu_e(i), nu_h(i), d(i)
                     print *, "Add graphene ?"
                     read(*,*) addSheet
                     if (addSheet .EQ. 1) then

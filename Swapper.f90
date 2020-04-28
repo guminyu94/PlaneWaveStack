@@ -6,10 +6,11 @@
 !
 !****************************************************************************
 Module Swapper
-    use Sim_parameters, only : wp, n_layers, theta, xi, eta_0
+    use Sim_parameters, only : wp, n_layers, theta, xi, eta_0, lambda_0
     use Layer_Class
     use S_Matrix_Class
     use Fields_Class
+    use Math
     implicit none
     
     type(Layer), allocatable :: layers(:)
@@ -30,6 +31,7 @@ Module Swapper
     contains
     ! swap freq and obtain the ref and tx coeff
     subroutine freq_swap(fun,freq_start,freq_end,n_points,file_name)
+        use Plot_Pgplot
         implicit none
         real(wp), intent(in) :: freq_start, freq_end
         integer, intent(in) :: n_points
@@ -40,6 +42,11 @@ Module Swapper
         integer :: i, j
         logical :: file_exists
         type(Fields), allocatable :: fields_layer(:)
+        real, allocatable :: freq_array(:), angle_array(:), tx_array(:)
+        
+        allocate(freq_array(n_points))
+        allocate(angle_array(n_points))
+        allocate(tx_array(n_points))
         
         if (n_points .EQ. 1) then
             freq_step = 0.0_wp
@@ -65,33 +72,43 @@ Module Swapper
             ! obtain reflection coeff
             tx_ref = trans_ref_coeff_freespace(S_Matrices)
             
+            
             ! write to file
             write(1,*) freq_cur, ABS(tx_ref(1,1,1))**2.0_wp, ABS(tx_ref(1,1,2))**2.0_wp, ABS(tx_ref(1,2,1))**2.0_wp, ABS(tx_ref(1,2,2))**2.0_wp, ABS(tx_ref(2,1,1))**2.0_wp, ABS(tx_ref(2,1,2))**2.0_wp, ABS(tx_ref(2,2,1))**2.0_wp, ABS(tx_ref(2,2,2))**2.0_wp
             
-            print *, 'Freq: ', freq_cur/1E12_wp
-            print *, "|tx_coeff_ee|^2"
-            print *, ABS(tx_ref(1,1,1))**2.0_wp
-            print *, "|tx_coeff_hh|^2"
-            print *, ABS(tx_ref(1,2,2))**2.0_wp
-            print *, "|tx_coeff_he|^2"
-            print *, ABS(tx_ref(1,1,2))**2.0_wp
-            print *, "|ref_coeff_ee|^2"
-            print *, ABS(tx_ref(2,1,1))**2.0_wp
-            print *, "|ref_coeff_hh|^2"
-            print *, ABS(tx_ref(2,2,2))**2.0_wp
-            print *, "|ref_coeff_he|^2"
-            print *, ABS(tx_ref(2,1,2))**2.0_wp
+            freq_array(j) = real(freq_cur/1.0E12_wp)
+            !angle_array(j) = real(ellipse_angle(tx_ref(1,1,1),tx_ref(1,2,1)))
+            tx_array(j) = real(ABS(tx_ref(2,1,1)))
+            
+            !print *, 'Freq: ', freq_cur/1.0E12_wp, 'THz'
+            !print *, 'Tx_Faraday_rot_angle: ', angle_array(j) / PI * 180.0, ' Degree'
+            
+            !print *, "tx_coeff_ee"
+            !print *, ABS(tx_ref(1,1,1))
+            !print *, "|tx_coeff_hh|^2"
+            !print *, ABS(tx_ref(1,2,2))**2.0_wp
+            !print *, "tx_coeff_he"
+            !print *, (tx_ref(1,2,1))
+            !print *, "|ref_coeff_ee|^2"
+            !print *, ABS(tx_ref(2,1,1))**2.0_wp
+            !print *, "|ref_coeff_hh|^2"
+            !print *, ABS(tx_ref(2,2,2))**2.0_wp
+            !print *, "|ref_coeff_he|^2"
+            !print *, ABS(tx_ref(2,2,1))**2.0_wp
             
             
         end do
     
-    close(1) 
+        close(1) 
+        
+        ! call plotting subroutine
+       ! call plot_1d(freq_array, angle_array, 'Freq(THz)','Angle(radius)', 'Faraday Rot Plot')
+        call plot_1d(freq_array, tx_array, 'Freq(THz)','Rx', 'Rx')
     end subroutine freq_swap
     
     ! obtain fields based on freq, fun stands for the function pointer of model's configuration
     subroutine fields_computation(fun,freq_in, n_points, file_name)
-        use Math, only : PI
-        use Sim_parameters, only : eta_0
+        use Plot_Pgplot
         implicit none
         procedure (fun_temp), pointer :: fun
         real(wp), intent(in) :: freq_in
@@ -102,13 +119,17 @@ Module Swapper
         complex(wp), dimension(2) :: fields_forward, fields_backward, E_field, H_field
         complex(wp), dimension(2,2) :: Pn_forward, Pn_backward
         logical :: file_exists
+        ! z plotting range for the first and last layer
+        real(wp) :: z_extension
         
-        ! corordinate
-        real(wp), allocatable :: pos(:)
+        real, allocatable :: z_array(:), field_array(:)
+        
         ! layer's field amplitude
         Type(Fields), allocatable :: fields_amp_layer(:)
         
-        allocate(pos(n_points))
+        ! plotting data array
+        allocate(z_array(n_points))
+        allocate(field_array(n_points))
         
         ! load model paramters
         call fun(freq_in, layers, inc_field)
@@ -121,11 +142,11 @@ Module Swapper
         call cal_fields_amp(S_Matrices, inc_field, fields_amp_layer)
         
         ! output data into a file
-        inquire(FILE=file_name // '_fields' // '.dat', EXIST=file_exists)
+        inquire(FILE=file_name // '_fields' // '.dat', EXIST = file_exists)
         if (file_exists) then
-            open(1, file = file_name // '_fields' // '.dat', status = 'old')
+            open(10, file = file_name // '_fields' // '.dat', status = 'old')
         else
-            open(1, file = file_name // '_fields' // '.dat', status = 'new')
+            open(10, file = file_name // '_fields' // '.dat', status = 'new')
         end if
         
         ! calculate the total thickness
@@ -133,14 +154,26 @@ Module Swapper
             totol_z = totol_z + layers(i)%d
         end do
         
+        if (totol_z .EQ. 0.0_wp)  then
+            z_extension = lambda_0
+        else
+            z_extension = totol_z / 4.0_wp
+        end if
+        totol_z = totol_z + 2.0_wp * z_extension
         dz = totol_z / real((n_points-1),wp)
         dz_round = dz/1E8
+        
+        layer_z = -1.0_wp * z_extension 
+        current_z = -1.0_wp * z_extension 
+        
         do i = 1, n_points
             ! update z-zn, dz_round to eliminate round-up error
-            if (layer_z - layers(current_layer)%d > dz_round) then
-                layer_z = layer_z - layers(current_layer)%d
+            if ( (layer_z - layers(current_layer)%d > dz_round) .and. (current_layer .NE. n_layers)) then
+                layer_z = layer_z - layers(current_layer)%d 
                 current_layer = current_layer + 1
             end if
+
+            
             ! calculate forward backward field using phase
             ! current layer start from 1, which omits the layer of inc field
             Pn_forward(1,1) = exp(-1.0_wp*(0.0_wp,1.0_wp)*layers(current_layer)%kz_e*(layer_z))
@@ -151,17 +184,25 @@ Module Swapper
             Pn_backward(2,1) = (0.0_wp,0.0_wp)
             Pn_backward(1,2) = (0.0_wp,0.0_wp)
             Pn_backward(2,2) = exp((0.0_wp,1.0_wp)*layers(current_layer)%kz_h*(layer_z-layers(current_layer)%d))
+            
             fields_forward = MATMUL(Pn_forward, fields_amp_layer(current_layer)%Field_1)
             fields_backward = MATMUL(Pn_backward, fields_amp_layer(current_layer)%Field_2)
             E_field = fields_forward + fields_backward
+            
             ! not sure which sign of eta should I choose
             H_field = MATMUL(layers(current_layer)%Y_n, fields_forward) - MATMUL(layers(current_layer)%Y_n, fields_backward)
-            write(1,*) REAL(current_z), REAL(Abs(E_field(1))), REAL(Abs(E_field(2))), REAL(Abs(H_field(1)*eta_0)),REAL(Abs(H_field(2)*eta_0))
+            write(10,*) REAL(current_z), REAL(Abs(E_field(1))), REAL(Abs(E_field(2))), REAL(Abs(H_field(1)*eta_0)), REAL(Abs(H_field(2)*eta_0))
+            
+            ! plot the E_e field
+            z_array(i) = REAL(current_z)
+            field_array(i) = (real(E_field(1)))
+
             current_z = current_z + dz
             layer_z = layer_z + dz
         end do
         
-        
+        ! call plotting subroutine
+        call plot_1d(z_array,field_array,'z(m)','E_Field_e(v/m)','Fields Plot')
     end subroutine fields_computation
     
     subroutine compute_S_matrix()
@@ -179,7 +220,6 @@ Module Swapper
     
     ! calculate fields' amplitude on each layer
     subroutine cal_fields_amp(S_matrices_in, inc_fields, fields_amp_layer_in)
-        use Math, only : unit_matrix
         implicit none
         type(S_Matrix), intent(in), allocatable :: S_matrices_in(:)
         type(Fields), intent(in) :: inc_fields
@@ -191,21 +231,33 @@ Module Swapper
         complex(wp), dimension(2) :: field_forward, field_backward
         n_S_matrices = SIZEOF(S_matrices_in)/SIZEOF(S_matrices_in(1))
         
-        do n = 1, n_S_matrices-1
-            S_matrices_Cascaded_1_n = S_Matrices_Cascade(S_matrices_in,1,n)
-            S_matrices_Cascaded_n_N = S_Matrices_Cascade(S_matrices_in,n+1,n_S_matrices)
-            field_forward = MATMUL((unit_matrix - MATMUL( S_matrices_Cascaded_1_n%beta_n , S_matrices_Cascaded_n_N%alpha_n ))**-1 , MATMUL( S_matrices_Cascaded_1_n%delta_n,inc_fields%Field_1) + MATMUL( MATMUL(S_matrices_Cascaded_1_n%beta_n , S_matrices_Cascaded_n_N%gamma_n), inc_fields%Field_2))
-            field_backward = MATMUL((unit_matrix - MATMUL( S_matrices_Cascaded_n_N%alpha_n , S_matrices_Cascaded_1_n%beta_n ))**-1 , MATMUL( MATMUL ( S_matrices_Cascaded_n_N%alpha_n , S_matrices_Cascaded_1_n%delta_n), inc_fields%Field_1) + MATMUL(S_matrices_Cascaded_n_N%gamma_n, inc_fields%Field_2))
-            fields_amp_layer_in(n+1) = Fields(field_forward,field_backward)
-        end do
-        
         ! calculate last layer, assume free space and no inc field from the last layer
         tx_ref = trans_ref_coeff_freespace(S_matrices_in)
-        fields_amp_layer_in(n_S_matrices+1)%Field_2 = MATMUL(tx_ref(1,:,:),inc_fields%Field_1)
-        fields_amp_layer_in(n_S_matrices+1)%Field_2 = inc_fields%Field_2
         
         fields_amp_layer_in(1)%Field_1 = inc_fields%Field_1
         fields_amp_layer_in(1)%Field_2 = MATMUL(tx_ref(2,:,:),inc_fields%Field_1)
+
+        !print*, 1
+        !print*, 'v_forward: ', abs(fields_amp_layer_in(1)%Field_1)
+        !print*, 'v_backward: ', abs(fields_amp_layer_in(1)%Field_2)
+        
+        do n = 1, n_S_matrices-1
+            S_matrices_Cascaded_1_n = S_Matrices_Cascade(S_matrices_in,1,n)
+            S_matrices_Cascaded_n_N = S_Matrices_Cascade(S_matrices_in,n+1,n_S_matrices)
+            field_forward = MATMUL((unit_matrix - MATMUL( S_matrices_Cascaded_1_n%beta_n , S_matrices_Cascaded_n_N%alpha_n ))**-1 , MATMUL( S_matrices_Cascaded_1_n%delta_n,inc_fields%Field_1) )
+            field_backward = MATMUL((unit_matrix - MATMUL( S_matrices_Cascaded_n_N%alpha_n , S_matrices_Cascaded_1_n%beta_n ))**-1 , MATMUL( MATMUL ( S_matrices_Cascaded_n_N%alpha_n , S_matrices_Cascaded_1_n%delta_n), inc_fields%Field_1) )
+            fields_amp_layer_in( n + 1 ) = Fields(field_forward,field_backward)
+            !print*, n + 1
+            !print*, 'v_forward: ', abs(fields_amp_layer_in(n+1)%Field_1)
+            !print*, 'v_backward: ', abs(fields_amp_layer_in(n+1)%Field_2)
+        end do
+        
+        fields_amp_layer_in(n_S_matrices+1)%Field_1 = MATMUL(tx_ref(1,:,:),inc_fields%Field_1)
+        fields_amp_layer_in(n_S_matrices+1)%Field_2 = inc_fields%Field_2
+        !print*, n+1
+        !print*, 'v_forward: ', abs(fields_amp_layer_in(n_S_matrices+1)%Field_1)
+        !print*, 'v_backward: ', abs(fields_amp_layer_in(n_S_matrices+1)%Field_2)
+        
         
     end subroutine cal_fields_amp
     
@@ -225,7 +277,6 @@ Module Swapper
     
     ! tx and ref coeff of last layer with PEC backed
     pure function trans_ref_coeff_freespace_pec(S_matrices_in, P_n_in) result(trans_ref_coeff)
-        use Math, only : unit_matrix
         implicit none
         type(S_Matrix), intent(in), allocatable :: S_matrices_in(:)
         complex(wp), dimension(2,2), intent(in) :: P_n_in
