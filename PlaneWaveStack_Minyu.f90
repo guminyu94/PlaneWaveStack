@@ -45,7 +45,7 @@ Program PlaneWaveStack_Minyu
         ! assign config to swapper
         fun_p => black_phosphorus_config
         ! swap freq
-        call freq_swap(fun_p,0.6E12_wp,1.4E12_wp,501, 'data/rxref_bp')
+        call freq_swap(fun_p,0.75E12_wp,1.25E12_wp,1001, 'data/rxref_bp')
         ! plot field of a single freq
         ! call fields_computation(fun_p,4.0E12_wp, 101, 'data/fields_1t_otto')
         

@@ -42,11 +42,13 @@ Module Swapper
         integer :: i, j
         logical :: file_exists
         type(Fields), allocatable :: fields_layer(:)
-        real, allocatable :: freq_array(:), angle_array(:), tx_array(:)
+        real, allocatable :: freq_array(:), angle_array(:), coeff_array_1(:), coeff_array_2(:), coeff_array_3(:)
         
         allocate(freq_array(n_points))
         allocate(angle_array(n_points))
-        allocate(tx_array(n_points))
+        allocate(coeff_array_1(n_points))
+        allocate(coeff_array_2(n_points))
+        allocate(coeff_array_3(n_points))
         
         if (n_points .EQ. 1) then
             freq_step = 0.0_wp
@@ -78,7 +80,9 @@ Module Swapper
             
             freq_array(j) = real(freq_cur/1.0E12_wp)
             !angle_array(j) = real(ellipse_angle(tx_ref(1,1,1),tx_ref(1,2,1)))
-            tx_array(j) = real(ABS(tx_ref(2,1,1)))
+            coeff_array_1(j) = real(ABS(tx_ref(2,1,1)))
+            coeff_array_2(j) = real(ABS(tx_ref(2,2,2)))
+            coeff_array_3(j) = real(ABS(tx_ref(2,2,1)))
             
             !print *, 'Freq: ', freq_cur/1.0E12_wp, 'THz'
             !print *, 'Tx_Faraday_rot_angle: ', angle_array(j) / PI * 180.0, ' Degree'
@@ -103,7 +107,9 @@ Module Swapper
         
         ! call plotting subroutine
        ! call plot_1d(freq_array, angle_array, 'Freq(THz)','Angle(radius)', 'Faraday Rot Plot')
-        call plot_1d(freq_array, tx_array, 'Freq(THz)','Rx', 'Rx')
+        !call plot_1d(freq_array, coeff_array_1, 'Freq(THz)','Rx', 'Rx')
+        !call plot_1d(freq_array, coeff_array_2, 'Freq(THz)','Rx', 'Rx')
+        call plot_1d(freq_array, coeff_array_1, 'Freq(THz)','Ref_Coeff_pp', 'Ref_Coeff_pp Plot')
     end subroutine freq_swap
     
     ! obtain fields based on freq, fun stands for the function pointer of model's configuration

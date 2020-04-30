@@ -6,7 +6,7 @@ Module Plot_Pgplot
         integer :: n_p
         n_p = size(x)
         !   initialize the pgplot, and select windows as plotting device     
-        IER = pgbeg(0,'/WZ',1,1)
+        IER = pgbeg(0,'/ps',1,1)
         
         ! adjust x and y lim automatically
         !   start a plot, xlim, ylim, box style, and x y scale    

@@ -90,8 +90,8 @@ Module Layer_Class
         complex(wp), intent(in) :: sigma_xx_in, sigma_yy_in, sigma_xy_in, sigma_yx_in
         complex(wp), dimension(2,2) :: sigma_n
         real(wp) :: sinxi, cosxi, sinxisqr, cosxisqr
-        sinxi = SIN(xi/180.0*PI)
-        cosxi = COS(xi/180.0*PI)
+        sinxi = SIN(xi/180.0_wp*PI)
+        cosxi = COS(xi/180.0_wp*PI)
         sinxisqr = sinxi**2.0_wp
         cosxisqr = cosxi**2.0_wp
         sigma_n(1,1) = sigma_xx_in * cosxisqr + sigma_yy_in * sinxisqr + (sigma_xy_in + sigma_yx_in) * cosxi * sinxi

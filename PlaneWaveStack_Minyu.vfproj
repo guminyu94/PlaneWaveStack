@@ -53,6 +53,7 @@
 		<File RelativePath=".\Faraday_Rot.f90"/>
 		<File RelativePath=".\JQSRT_case_2.f90"/>
 		<File RelativePath=".\Otto.f90"/>
+		<File RelativePath=".\Substrate.f90"/>
 		<File RelativePath=".\Swapper.f90"/></Filter>
 		<Filter Name="graphen_sig">
 		<File RelativePath=".\graphen_sig\constants.f90"/>
@@ -68,7 +69,6 @@
 		<File RelativePath=".\Math.f90"/>
 		<File RelativePath=".\PlaneWaveStack_Minyu.f90"/>
 		<File RelativePath=".\S_Matrix_Class.f90"/>
-		<File RelativePath=".\Sim_parameters.f90"/>
-		<File RelativePath=".\Substrate.f90"/></Filter>
+		<File RelativePath=".\Sim_parameters.f90"/></Filter>
 		<File RelativePath=".\ReadMe.txt"/></Files>
 	<Globals/></VisualStudioProject>

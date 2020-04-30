@@ -35,9 +35,9 @@ real :: omega, b, el2, el
 
 integer :: nbeg
 
-omega=2.0*pi*freq
+omega = 2.0*pi*freq
 
-omh=hbar*(omega-j/tau)
+omh = hbar*(omega-j/tau)
 
 if (abs(b0)<klein)then
     
