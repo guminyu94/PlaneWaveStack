@@ -20,7 +20,6 @@ module Black_Phosphorus
         
         complex(wp), dimension(2, 2) :: bp_sigma_mat 
         ! defected Si thickness
-
         
         ! update paramters relative to freq and allocate array
         call update_freq(freq_in)

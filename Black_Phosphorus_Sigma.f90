@@ -1,4 +1,11 @@
-Module Black_Phosphorus_Sigma
+!****************************************************************************
+!
+!   Module: Black_Phosphorus_Sigma
+!
+!   PURPOSE: Compute sigma tensor of black phosphorus
+!
+!****************************************************************************
+    Module Black_Phosphorus_Sigma
     use Constants, only : hbar, e, PI
     use Sim_parameters, only : wp
     implicit none
