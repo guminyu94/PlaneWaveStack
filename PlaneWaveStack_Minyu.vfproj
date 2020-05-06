@@ -54,14 +54,16 @@
 		<File RelativePath=".\Black_Phosphorus.f90"/>
 		<File RelativePath=".\Faraday_Rot.f90"/>
 		<File RelativePath=".\JQSRT_case_2.f90"/>
+		<File RelativePath=".\Modified_Otto.f90"/>
 		<File RelativePath=".\Otto.f90"/>
 		<File RelativePath=".\Substrate.f90"/>
 		<File RelativePath=".\Swapper.f90"/></Filter>
 		<Filter Name="graphen_sig">
-		<File RelativePath=".\Graphene_Ribbons.f90"/>
 		<File RelativePath=".\graphen_sig\constants.f90"/>
 		<File RelativePath=".\graphen_sig\fermipass.f90"/>
 		<File RelativePath=".\graphen_sig\graphene.f90"/>
+		<File RelativePath=".\Graphene_Drude.f90"/>
+		<File RelativePath=".\Graphene_Ribbons.f90"/>
 		<File RelativePath=".\graphen_sig\GrapheneSig.f90"/></Filter>
 		<Filter Name="plotting">
 		<File RelativePath=".\Plot_Pgplot.f90"/></Filter>

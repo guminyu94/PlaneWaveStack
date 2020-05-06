@@ -32,7 +32,7 @@ Module Faraday_Rot
         !print*, sig_d*eta_0
         !print*, "simga_h * jeta_0"
         !print*, sig_h*eta_0*(0.0,1.0)
-        k_rho = k_0*(1.0_wp**0.5_wp)*SIN(theta/180.0_wp*PI)
+        k_rho = k_0*(1.0_wp**0.5_wp) * SIN(theta/180.0_wp*PI)
         
         layers(1)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
         layers(2)=Layer(sic_h6_eps_eps_t, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), sic_h6_eps_nu_e, (1.0_wp,0.0_wp), 0.0_wp)

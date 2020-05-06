@@ -8,7 +8,7 @@ module Black_Phosphorus
 
         
     contains
-    subroutine black_phosphorus_config(freq_in,layers_in,inc_field)
+    subroutine black_phosphorus_config(freq_in, theta_in, xi_in, layers_in,inc_field)
         use Layer_Class
         use Black_Phosphorus_Sigma
         use Fields_Class
@@ -17,7 +17,7 @@ module Black_Phosphorus
         type(Layer), allocatable, intent(inout) :: layers_in(:)
         type(Fields), intent(inout) :: inc_field
         integer :: i
-        
+        real(wp), intent(in) :: theta_in, xi_in
         complex(wp), dimension(2, 2) :: bp_sigma_mat 
         ! defected Si thickness
         
@@ -28,10 +28,10 @@ module Black_Phosphorus
             allocate(layers_in(n_layers))
         end if
         
-        xi = 45.0_wp
+        xi = xi_in
         ! normal inc plane wave
-        theta = 30.0_wp
-        k_rho = k_0*SIN(theta/180.0_wp*PI)
+        theta = theta_in
+        k_rho = k_0 * SIN(theta/180.0_wp*PI)
         inc_field  = Fields((1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp))
         
         ! update constant paramters
