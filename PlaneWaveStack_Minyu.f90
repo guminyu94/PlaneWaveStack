@@ -44,7 +44,7 @@ Program PlaneWaveStack_Minyu
         ! assign config to swapper
         fun_p => mod_otto_config
         ! swap freq
-        call theta_swap(fun_p,5.157E12_wp, 0.0_wp, 90.0_wp, 1001, 'data/txangle_bp')
+        call theta_swap(fun_p,5.174E+12_wp, 0.0_wp, 89.99_wp, 1001, 'data/txangle_bp')
         ! plot field of a single freq
         ! call fields_computation(fun_p,4.0E12_wp, 101, 'data/fields_1t_otto')
         

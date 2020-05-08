@@ -7,6 +7,7 @@ Module Modified_Otto
     subroutine  mod_otto_config(freq_in,theta_in,xi_in,layers,inc_field)
         use Layer_Class
         use Graphene_Drude
+        !use GrapheneSig
         use Fields_Class
         use Substrate
         implicit none   
@@ -41,8 +42,9 @@ Module Modified_Otto
         
         ! update constant paramters
         sig_d = graphene_Drude_sig(freq_in)
+        !call sigmas(real(freq_in),sig_d,sig_h,n_d,n_h)
         ! print *, sig_d
-
+        
         !print*, "simga_d * eta_0"
         !print*, sig_d * eta_0
         !print*, "simga_h * jeta_0"
@@ -53,11 +55,12 @@ Module Modified_Otto
         layers(1)=Layer( prism_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp )
         
         if (if_graphene .EQ. 1) then
-            layers(2)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), sig_d, sig_d, (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 1E-6_wp)
+            layers(2)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), cmplx(sig_d,wp), cmplx(sig_d,wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 1E-6_wp)
         else 
             layers(2)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 1E-6_wp)
         end if
-        layers(3)=Layer((2.1025_wp,0.0_wp), (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 10E-6_wp)
+        
+        layers(3)=Layer( polymethylpentene_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 10E-6_wp)
         layers(4)=Layer( prism_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp )
         
         

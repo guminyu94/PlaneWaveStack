@@ -112,7 +112,6 @@ Module Swapper
             !print *, "|ref_coeff_he|^2"
             !print *, ABS(tx_ref(2,2,1))**2.0_wp
             
-            
         end do
     
         close(1) 
@@ -121,7 +120,7 @@ Module Swapper
         ! call plot_1d(freq_array, angle_array, 'Freq(THz)','Angle(radius)', 'Faraday Rot Plot')
         ! call plot_1d(freq_array, coeff_array_1, 'Freq(THz)','Rx', 'Rx')
         ! call plot_1d(freq_array, coeff_array_2, 'Freq(THz)','Rx', 'Rx')
-        call plot_1d(freq_array, coeff_array_1, coeff_array_2, coeff_array_3, 'Freq(THz)','Ref_Coeff_pp', 'Ref_Coeff_pp Plot')
+        call plot_1d(freq_array, coeff_array_1, coeff_array_2, coeff_array_3, 'Freq(THz)','Ref_Coeff_pp', 'Ref_Coeff_pp Plot', dev = '/PS')
     end subroutine freq_swap
     
     subroutine theta_swap(fun,freq,theta_start,theta_end,n_points,file_name)
@@ -163,10 +162,9 @@ Module Swapper
             
             theta_array(j) = real(theta_cur)
             !angle_array(j) = real(ellipse_angle(tx_ref(1,1,1),tx_ref(1,2,1)))
-            coeff_array_1(j) = real(ABS(tx_ref(2,1,1)))
-            coeff_array_2(j) = real(ABS(tx_ref(1,1,1)))
-            coeff_array_3(j) = real(ABS((1.0_wp,0.0_wp)-tx_ref(1,1,1)-tx_ref(2,1,1)))
-            
+            coeff_array_1(j) = real(ABS(tx_ref(2,1,1))**2.0_wp)
+            coeff_array_2(j) = real(ABS(tx_ref(1,1,1))**2.0_wp)
+            coeff_array_3(j) = real( 1.0 - abs(tx_ref(1,1,1))**2.0_wp - abs(tx_ref(2,1,1))**2.0_wp)
             
             !print *, 'Freq: ', freq_cur/1.0E12_wp, 'THz'
             !print *, 'Tx_Faraday_rot_angle: ', angle_array(j) / PI * 180.0, ' Degree'
@@ -183,11 +181,10 @@ Module Swapper
             !print *, ABS(tx_ref(2,2,2))**2.0_wp
             !print *, "|ref_coeff_he|^2"
             !print *, ABS(tx_ref(2,2,1))**2.0_wp
-            
         end do
         
         ! call plotting subroutine
-        call plot_1d(theta_array,  coeff_array_1, coeff_array_2, coeff_array_3, 'theta(degrees)','Ref_Coeff_pp', 'Ref_Coeff_pp Plot')
+        call plot_1d(theta_array, coeff_array_1, coeff_array_2, coeff_array_3, x_label = 'theta(degrees)',y_label = 'Ref_Coeff_pp', title = 'Ref_Coeff_pp Plot', dev = '/PS')
     end subroutine theta_swap
     
     ! obtain fields based on freq, fun stands for the function pointer of model's configuration
