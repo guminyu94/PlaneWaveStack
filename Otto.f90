@@ -27,11 +27,11 @@ Module Otto
         sigyy = CMPLX(sig_d,wp)
         sigyx = CMPLX(sig_h,wp)
         sigxy = CMPLX(-sig_h,wp)
-        !print*, "simga_d * eta_0"
-        !print*, sig_d*eta_0
-        !print*, "simga_h * jeta_0"
-        !print*, sig_h*eta_0*(0.0,1.0)
-        k_rho = k_0*(12.0_wp**0.5_wp) * SIN(theta/180.0_wp*PI)
+        print*, "simga_d"
+        print*, sig_d
+        print*, "simga_h"
+        print*, sig_h
+        k_rho = k_0 * (12.0_wp**0.5_wp) * SIN(theta/180.0_wp*PI)
         
         layers(1) = Layer((12.0_wp,0.0_wp), (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
         layers(2) = Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 5E-6_wp)

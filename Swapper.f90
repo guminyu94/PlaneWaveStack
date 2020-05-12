@@ -24,19 +24,19 @@ Module Swapper
             use Layer_Class
             real(wp), intent(in) :: f
             type(Layer), allocatable, intent(inout) :: larray(:)
-            type(Fields) :: inc_field
+            type(Fields), intent(inout) :: inc_field
         end subroutine fun_temp
     end interface
     
     abstract interface
-        subroutine fun_temp_angle(f, theta, xi, larray, inc_field)
+        subroutine fun_temp_angle(f, larray, inc_field,theta, xi)
             use Sim_parameters, only : wp
             use Fields_Class
             use Layer_Class
             real(wp), intent(in) :: f
             real(wp), intent(in), optional ::  theta, xi
             type(Layer), allocatable, intent(inout) :: larray(:)
-            type(Fields) :: inc_field
+            type(Fields), intent(inout) :: inc_field
         end subroutine fun_temp_angle
     end interface
 
@@ -47,19 +47,20 @@ Module Swapper
         implicit none
         real(wp), intent(in) :: freq_start, freq_end
         integer, intent(in) :: n_points
-        procedure (fun_temp), pointer :: fun
+        procedure (fun_temp_angle), pointer :: fun
         real(wp) :: freq_step, freq_cur
         complex(wp), dimension(2,2,2) :: tx_ref
         character(len=*), intent(in) :: file_name
         integer :: i, j
         logical :: file_exists
         type(Fields), allocatable :: fields_layer(:)
-        real, allocatable :: freq_array(:), coeff_array_1(:), coeff_array_2(:), coeff_array_3(:)
+        real, allocatable :: freq_array(:), coeff_array_1(:), coeff_array_2(:), coeff_array_3(:),angle_array(:)
         
         allocate(freq_array(n_points))
         allocate(coeff_array_1(n_points))
         allocate(coeff_array_2(n_points))
         allocate(coeff_array_3(n_points))
+        allocate(angle_array(n_points))
         
         if (n_points .EQ. 1) then
             freq_step = 0.0_wp
@@ -79,6 +80,7 @@ Module Swapper
         do j = 1, n_points
             !load parmeters
             freq_cur = real(j-1,wp) * freq_step + freq_start
+            
             call fun(freq_cur,layers,inc_field)
             call compute_S_matrix
             
@@ -91,13 +93,16 @@ Module Swapper
             
             freq_array(j) = real(freq_cur/1.0E12_wp)
             
-            coeff_array_1(j) = real(ABS(tx_ref(2,1,1)))
-            coeff_array_2(j) = real(ABS(tx_ref(2,2,2)))
-            coeff_array_3(j) = real(ABS(tx_ref(2,2,1)))
+            !coeff_array_1(j) = real(ABS(tx_ref(2,1,1)))
+            !coeff_array_2(j) = real(ABS(tx_ref(2,2,2)))
+            !(j) = real(ABS(tx_ref(2,2,1)))
             
+            angle_array(j) = ellipse_angle(tx_ref(2,1,1),tx_ref(2,1,2)) / PI * 180.0
+            coeff_array_1(j) = abs(tx_ref(1,1,1))**2.0
+            coeff_array_2(j) = abs(tx_ref(1,2,1))**2.0
             
-            !print *, 'Freq: ', freq_cur/1.0E12_wp, 'THz'
-            !print *, 'Tx_Faraday_rot_angle: ', angle_array(j) / PI * 180.0, ' Degree'
+            ! print *, 'Freq: ', freq_cur/1.0E12_wp, ' THz'
+            ! print *, 'Tx_Faraday_rot_angle: ', angle_array(j) , ' Degree'
             
             !print *, "tx_coeff_ee"
             !print *, ABS(tx_ref(1,1,1))
@@ -117,10 +122,15 @@ Module Swapper
         close(1) 
         
         ! call plotting subroutine
-        ! call plot_1d(freq_array, angle_array, 'Freq(THz)','Angle(radius)', 'Faraday Rot Plot')
+        call plot_1d(freq_array,  angle_array, x_label = 'Freq(THz)', y_label = 'amp', title = ' ', dev='/WZ')
         ! call plot_1d(freq_array, coeff_array_1, 'Freq(THz)','Rx', 'Rx')
         ! call plot_1d(freq_array, coeff_array_2, 'Freq(THz)','Rx', 'Rx')
-        call plot_1d(freq_array, coeff_array_1, coeff_array_2, coeff_array_3, 'Freq(THz)','Ref_Coeff_pp', 'Ref_Coeff_pp Plot', dev = '/PS')
+       ! call plot_1d(freq_array, coeff_array_1, coeff_array_2, coeff_array_3, 'Freq(THz)','OM Angle (Degrees)', '', dev = '/WZ')
+        deallocate(freq_array)
+        deallocate(coeff_array_1)
+        deallocate(coeff_array_2)
+        deallocate(coeff_array_3)
+        deallocate(angle_array)
     end subroutine freq_swap
     
     subroutine theta_swap(fun,freq,theta_start,theta_end,n_points,file_name)
@@ -153,7 +163,7 @@ Module Swapper
             theta_cur = real(j-1,wp) * theta_step + theta_start
             
             ! assume xi is 0
-            call fun(freq, theta_cur, 0.0_wp, layers, inc_field)
+            call fun(freq, layers, inc_field,theta_cur, 0.0_wp )
                         
             call compute_S_matrix
             
@@ -182,9 +192,15 @@ Module Swapper
             !print *, "|ref_coeff_he|^2"
             !print *, ABS(tx_ref(2,2,1))**2.0_wp
         end do
+
+        
         
         ! call plotting subroutine
-        call plot_1d(theta_array, coeff_array_1, coeff_array_2, coeff_array_3, x_label = 'theta(degrees)',y_label = 'Ref_Coeff_pp', title = 'Ref_Coeff_pp Plot', dev = '/PS')
+        call plot_1d(theta_array, coeff_array_1, coeff_array_2, coeff_array_3, x_label = 'theta (degrees)',y_label = '',  dev = '/PS')
+        deallocate(theta_array)
+        deallocate(coeff_array_1)
+        deallocate(coeff_array_2)
+        deallocate(coeff_array_3)
     end subroutine theta_swap
     
     ! obtain fields based on freq, fun stands for the function pointer of model's configuration

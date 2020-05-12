@@ -4,7 +4,7 @@ Module Modified_Otto
     integer :: if_graphene
     
     contains 
-    subroutine  mod_otto_config(freq_in,theta_in,xi_in,layers,inc_field)
+    subroutine  mod_otto_config(freq_in,layers,inc_field,theta_in,xi_in)
         use Layer_Class
         use Graphene_Drude
         !use GrapheneSig

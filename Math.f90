@@ -126,9 +126,17 @@ Module Math
         complex(wp), intent(in) :: Ex, Ey
         complex(wp) :: Eref
         real(wp) :: theta, phi
-        Eref = Ex / Ey
-        phi = atan2(imag(Eref),real(Eref))
-        theta = atan2(2 * abs(Ex) * abs(Ey) * cos(phi), (abs(Ex)**2.0_wp - abs(Ey)**2.0_wp)) / 2.0_wp
+        if (Ey .EQ. (0.0_wp,0.0_wp)) then
+            theta = 0.0_wp
+        else
+            Eref = Ex / Ey
+            if (real(Eref) .GE. 0.0_wp) then
+                phi = atan2(imag(Eref),real(Eref))
+            else
+                phi = atan2(imag(Eref),real(Eref)) + PI
+            end if
+            theta = atan2(2 * abs(Ex) * abs(Ey) * cos(phi), (abs(Ex)**2.0_wp - abs(Ey)**2.0_wp)) / 2.0_wp
+        end if
    end function ellipse_angle
    
 end Module Math

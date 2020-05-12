@@ -1,14 +1,14 @@
 module Black_Phosphorus
     use Sim_parameters
+    use Substrate, only : sio2_e, si_e
     implicit none   
-    complex(wp), parameter :: sio2_e = (3.61_wp,0.0_wp), si_e = (11.6964_wp,0.0_wp), ds_e= (11.6964_wp,0.0_wp)
+    complex(wp), parameter :: ds_e= (11.6964_wp,0.0_wp)
     ! defected Si thickness
     real(wp), parameter :: ds_t = 130E-6_wp
     integer :: count = 0, is_bp
-
         
     contains
-    subroutine black_phosphorus_config(freq_in, theta_in, xi_in, layers_in,inc_field)
+    subroutine black_phosphorus_config(freq_in, layers_in, inc_field, theta_in, xi_in )
         use Layer_Class
         use Black_Phosphorus_Sigma
         use Fields_Class
@@ -17,7 +17,7 @@ module Black_Phosphorus
         type(Layer), allocatable, intent(inout) :: layers_in(:)
         type(Fields), intent(inout) :: inc_field
         integer :: i
-        real(wp), intent(in) :: theta_in, xi_in
+        real(wp), intent(in), optional :: theta_in, xi_in
         complex(wp), dimension(2, 2) :: bp_sigma_mat 
         ! defected Si thickness
         
@@ -28,15 +28,25 @@ module Black_Phosphorus
             allocate(layers_in(n_layers))
         end if
         
-        xi = xi_in
-        ! normal inc plane wave
-        theta = theta_in
+        if (present(xi_in)) then
+            xi = xi_in
+        else
+            xi = 45.0_wp
+        end if
+        
+        if (present(theta_in)) then
+            ! normal inc plane wave
+            theta = theta_in
+        else
+            theta = 0.0_wp
+        end if
+        
         k_rho = k_0 * SIN(theta/180.0_wp*PI)
         inc_field  = Fields((1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp))
         
-        ! update constant paramters
-        bp_sigma_mat = bp_sigma(freq_in,8.55E17_wp)
-        
+        ! update constant paramters, the n can be adjusted
+        bp_sigma_mat = bp_sigma(freq_in,6.55E17_wp)
+
         is_bp = 1
         
         if (is_bp .EQ. 1) then
@@ -46,27 +56,19 @@ module Black_Phosphorus
             layers_in(1)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
         end if
         
-        if (count .EQ. 0)   then
-            !print*, "simga_bp_arm"
-            !print*, bp_sigma_mat(1,1)
-            !print*, "simga_bp_zig"
-            !print*, bp_sigma_mat(2,2)
-            print *, layers_in(1)%sigma_n
-            count = 1
-        end if 
-        
-        ! second layer is detected Si
-        layers_in(2)=Layer(ds_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), ds_t)
+        ! second layer is defected Si
+        layers_in(2) = Layer(ds_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), ds_t)
         ! PC 15 pairs (Si and SiO2)
         
         do i = 1, 15
             ! SiO2
-            layers_in(i*2+1)=Layer(sio2_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 39.47E-6_wp)
+            layers_in(i*2+1) = Layer(sio2_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 39.47E-6_wp)
             ! Si
-            layers_in(i*2+2)=Layer(si_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 21.93E-6_wp)
+            layers_in(i*2+2) = Layer(si_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 21.93E-6_wp)
         end do
+        
         ! last layer is outcoming media air
-        layers_in(33)=Layer(sio2_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
+        layers_in(33) = Layer(sio2_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
         
     end subroutine
 end module Black_Phosphorus

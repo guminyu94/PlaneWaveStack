@@ -19,7 +19,13 @@
     real(wp), parameter :: gamma_bp = 4 * a_bp / PI * e
     real(wp), parameter :: m_arm = ((hbar*e) ** 2.0_wp) / (2.0_wp * (gamma_bp ** 2.0_wp) / delta_bp + eta_c_bp)
     real(wp), parameter :: m_zig = ((hbar*e) ** 2.0_wp) / (2.0_wp * nu_c_bp)
-
+    
+    real(wp), parameter :: m_xx = 0.15_wp * m_0
+    real(wp), parameter :: m_yy = 0.7 * m_0
+    real(wp), parameter :: m_star = (m_xx * m_yy)**0.5_wp
+    real(wp), parameter :: xi_bp = eta_bp / (hbar*e)
+    
+    
     contains 
     
     function bp_sigma(freq,n) result(sigma_mat) 
@@ -41,5 +47,24 @@
         sigma_mat(2,1) = (0.0_wp,0.0_wp)
         sigma_mat(2,2) = sigma_zig
     end function bp_sigma
+    
+     function bp_sigma_b0(freq,n,b_0) result(sigma_mat)
+         real(wp), intent(in) :: freq
+        ! carrier density (adjustable)
+        real(wp), intent(in) :: n 
+        complex(wp) , dimension(2,2) :: sigma_mat
+        real(wp), intent(in) :: b_0
+        
+        real(wp) :: omega
+        real(wp) :: omega_c
+        omega = 2 * PI * freq
+        omega_c = e * b_0 / m_star
+        sigma_mat(1,1) = (0.0_wp,1.0_wp) * n * (e**2.0_wp) / m_xx * (omega + (0.0_wp,1.0_wp) * xi_bp) / ( (omega + (0.0_wp,1.0_wp)* xi_bp)**2.0_wp - omega_c**2.0_wp )
+        sigma_mat(1,2) = - n * (e**2.0_wp)/m_star * omega_c / ((omega+(0.0_wp,1.0_wp)*xi_bp)**2.0_wp - omega_c**2.0_wp)
+        sigma_mat(2,1) = - sigma_mat(1,2)
+        sigma_mat(2,2) = (0.0_wp,1.0_wp) * n * (e**2.0_wp) / m_yy * (omega + (0.0_wp,1.0_wp) * xi_bp) / ( (omega + (0.0_wp,1.0_wp)* xi_bp)**2.0_wp - omega_c**2.0_wp )
+             
+     end function bp_sigma_b0
+    
     
 end module Black_Phosphorus_Sigma

@@ -30,7 +30,7 @@ module JQSRT_case_2
         print*, sig_d*eta_0
         print*, "simga_h * jeta_0"
         print*, sig_h*eta_0*(0.0,1.0)
-        k_rho = k_0*SIN(theta/180.0_wp*PI)
+        k_rho = k_0 * SIN(theta/180.0_wp*PI)
         
         layers_in(1)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
         layers_in(2)=Layer((10.2_wp,0.0_wp), (1.0_wp,0.0_wp), sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 10E-6_wp)

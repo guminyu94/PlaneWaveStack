@@ -52,12 +52,13 @@
 		<File RelativePath=".\Black_Phosphorus_Sigma.f90"/></Filter>
 		<Filter Name="configuration">
 		<File RelativePath=".\Black_Phosphorus.f90"/>
+		<File RelativePath=".\Black_Phosphorus_FR.f90"/>
 		<File RelativePath=".\Faraday_Rot.f90"/>
+		<File RelativePath=".\Graphene_PC_OM.f90"/>
 		<File RelativePath=".\JQSRT_case_2.f90"/>
 		<File RelativePath=".\Modified_Otto.f90"/>
 		<File RelativePath=".\Otto.f90"/>
-		<File RelativePath=".\Substrate.f90"/>
-		<File RelativePath=".\Swapper.f90"/></Filter>
+		<File RelativePath=".\Substrate.f90"/></Filter>
 		<Filter Name="graphen_sig">
 		<File RelativePath=".\graphen_sig\constants.f90"/>
 		<File RelativePath=".\graphen_sig\fermipass.f90"/>
@@ -72,6 +73,7 @@
 		<File RelativePath=".\Math.f90"/>
 		<File RelativePath=".\PlaneWaveStack_Minyu.f90"/>
 		<File RelativePath=".\S_Matrix_Class.f90"/>
-		<File RelativePath=".\Sim_parameters.f90"/></Filter>
+		<File RelativePath=".\Sim_parameters.f90"/>
+		<File RelativePath=".\Swapper.f90"/></Filter>
 		<File RelativePath=".\ReadMe.txt"/></Files>
 	<Globals/></VisualStudioProject>

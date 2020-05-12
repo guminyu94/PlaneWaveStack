@@ -20,11 +20,11 @@
 Program PlaneWaveStack_Minyu  
     use Sim_parameters
     use Layer_Class
-    use GrapheneSig
     use S_Matrix_Class
     use Fields_Class
     use Swapper
-    use Modified_Otto
+    use Black_Phosphorus
+    use GrapheneSig
     implicit none    
     
     integer :: use_saved_config
@@ -42,9 +42,9 @@ Program PlaneWaveStack_Minyu
         
     if (use_saved_config .EQ. 1) then
         ! assign config to swapper
-        fun_p => mod_otto_config
+        fun_p => black_phosphorus_config
         ! swap freq
-        call theta_swap(fun_p,5.174E+12_wp, 0.0_wp, 89.99_wp, 1001, 'data/txangle_bp')
+        call freq_swap(fun_p, 0.8E+12_wp, 1.2E+12_wp, 501, 'data/OM_GPC')
         ! plot field of a single freq
         ! call fields_computation(fun_p,4.0E12_wp, 101, 'data/fields_1t_otto')
         
@@ -161,6 +161,18 @@ Program PlaneWaveStack_Minyu
     ! end
     print *, 'End of Program, Type in Any Key to Exit'
     read (*,*)
-
+    deallocate(eps_t)
+    deallocate(mu_t)
+    deallocate(sigma_x)
+    deallocate(sigma_y)
+    deallocate(d)
+    deallocate(nu_e)
+    deallocate(nu_h)
+    deallocate(layers)
+    deallocate(S_Matrices)
+    deallocate(sigma_xy)
+    deallocate(sigma_yx)
+    
+    
 end program PlaneWaveStack_Minyu
     

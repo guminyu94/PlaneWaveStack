@@ -35,7 +35,7 @@ Module Faraday_Rot
         k_rho = k_0*(1.0_wp**0.5_wp) * SIN(theta/180.0_wp*PI)
         
         layers(1)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
-        layers(2)=Layer(sic_h6_eps_eps_t, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), sic_h6_eps_nu_e, (1.0_wp,0.0_wp), 0.0_wp)
+        layers(2)=Layer(sic_h6_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), sic_h6_nu, (1.0_wp,0.0_wp), 0.0_wp)
         
         
     end subroutine faraday_rot_config

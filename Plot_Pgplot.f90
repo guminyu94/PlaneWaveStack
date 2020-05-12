@@ -1,6 +1,7 @@
 Module Plot_Pgplot
+    
     contains
-    subroutine plot_1d(x,y,y2,y3,x_label,y_label,title,dev)
+    subroutine plot_1d(x,y,y2,y3,x_label,y_label,title,dev,dots_x,dots_y,style)
         real, allocatable, intent(in) :: x(:), y(:) 
         character(len=*), intent(in), optional  :: x_label, y_label, title
         integer :: n_p
@@ -8,6 +9,8 @@ Module Plot_Pgplot
         real, allocatable, intent(in), optional :: y2(:), y3(:)
         character(len=*), intent(in), optional  :: dev
         real :: ymin, ymax
+        real, allocatable, optional, intent(in) :: dots_x(:), dots_y(:)
+        integer, optional, intent(in) :: style
         
         n_p = size(x)
         
@@ -24,6 +27,7 @@ Module Plot_Pgplot
         ! compute the range of y based on all y input
         ymin = minval(y)
         ymax = maxval(y)
+        
         if (present(y2)) then
             ymin = min(ymin,minval(y2))
             ymax = max(ymax,maxval(y2))
@@ -34,46 +38,40 @@ Module Plot_Pgplot
             ymax = max(ymax,maxval(y3))
         end if
         
-        CALL pgenv(minval(x),maxval(x),ymin,ymax,maxval(y),0,1)
+        CALL pgenv(minval(x),maxval(x),ymin,ymax,0,1)
+    
         
         if (present(x_label) .AND. present(y_label) .AND. present(title)) then
             ! labeling
             CALL pglab(x_label, y_label, title)
+        else if ( present(x_label) .AND. present(y_label) ) then
+            CALL pglab(x_label, y_label, '')
         end if
         
-        ! draw point mark
-        ! CALL PGPT(5,XS,YS,9)
-
+        
+        
         ! plot line, num of data points, data
         ! CALL PGSLS(1)
+        CALL pgslw(3)
+        
         CALL PGLINE(n_p,x,y)
         
         if (present(y2)) then
-            !CALL PGSLS(3)
-            CALL PGSCI(2)
+            CALL PGSLS(2)
+            !CALL PGSCI(2)
             CALL PGLINE(n_p,x,y2)
             ! CALL PGSLS(1)
         end if
         
         if (present(y3)) then
-            CALL PGSLS(2)
-            CALL PGSCI(1)
+            CALL PGSLS(3)
+            !CALL PGSCI(3)
             CALL PGLINE(n_p,x,y3)
         end if
-    
+        
+
+        
         CALL pgend
     end subroutine plot_1d
-    
-    ! plot dot mark
-    subroutine plot_dot(x,y,style)
-        real, allocatable, intent(in) :: x(:), y(:)
-        integer, intent(in), optional :: style
-        ! draw point mark
-        if (present(style)) then
-            CALL PGPT(size(x),x,y,style)
-        else 
-            CALL PGPT(size(x),x,y,9)
-        end if
-    end subroutine plot_dot
     
 end module Plot_Pgplot
