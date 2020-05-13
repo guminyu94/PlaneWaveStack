@@ -57,8 +57,8 @@ Module Plot_Pgplot
         CALL PGLINE(n_p,x,y)
         
         if (present(y2)) then
-            CALL PGSLS(2)
-            !CALL PGSCI(2)
+            !CALL PGSLS(2)
+            CALL PGSCI(2)
             CALL PGLINE(n_p,x,y2)
             ! CALL PGSLS(1)
         end if

@@ -23,7 +23,7 @@ Program PlaneWaveStack_Minyu
     use S_Matrix_Class
     use Fields_Class
     use Swapper
-    use Black_Phosphorus
+    use Black_Phosphorus_FR
     use GrapheneSig
     implicit none    
     
@@ -33,7 +33,7 @@ Program PlaneWaveStack_Minyu
     integer :: addSheet = 0
     integer :: i = 0
     
-    procedure(fun_temp_angle), pointer :: fun_p
+    procedure(fun_temp), pointer :: fun_p
     complex(wp), dimension(2,2,2) :: tx_ref
     
     ! *, "Use Saved configure"
@@ -42,12 +42,12 @@ Program PlaneWaveStack_Minyu
         
     if (use_saved_config .EQ. 1) then
         ! assign config to swapper
-        fun_p => black_phosphorus_config
+        fun_p => black_phosphorus_fr_config
         ! swap freq
-        call freq_swap(fun_p, 0.8E+12_wp, 1.2E+12_wp, 501, 'data/OM_GPC')
+        call freq_swap(fun_p,1E+12_wp, 15E+12_wp, 1000, 'data/OM_GPC')
         ! plot field of a single freq
-        ! call fields_computation(fun_p,4.0E12_wp, 101, 'data/fields_1t_otto')
-        
+        !call fields_computation(fun_p,7.75E12_wp, 10001, 'data/fields_5t_bp_fr')
+        !call plot_bp_sigma(5E12_wp,15E12_wp,1001,2.5E17_wp,5.0_wp)
     else
         print *, "Number of Layers"
         read (*,*) n_layers

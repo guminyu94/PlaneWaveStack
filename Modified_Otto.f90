@@ -4,7 +4,7 @@ Module Modified_Otto
     integer :: if_graphene
     
     contains 
-    subroutine  mod_otto_config(freq_in,layers,inc_field,theta_in,xi_in)
+    subroutine  mod_otto_config(freq_in,layers,inc_field,theta_in,xi_in,parameters)
         use Layer_Class
         use Graphene_Drude
         !use GrapheneSig
@@ -12,9 +12,10 @@ Module Modified_Otto
         use Substrate
         implicit none   
         real(wp), intent(in) :: freq_in
-        real(wp), intent(in), optional :: xi_in, theta_in
         type(Layer), allocatable, intent(inout) :: layers(:)
         type(Fields), intent(inout) :: inc_field
+        real(wp), intent(in), optional :: theta_in, xi_in
+        real(wp), intent(in), optional, dimension(:) :: parameters
         complex(wp) :: sig_d
         complex(wp) :: field_cos
         

@@ -5,10 +5,10 @@ module Black_Phosphorus
     complex(wp), parameter :: ds_e= (11.6964_wp,0.0_wp)
     ! defected Si thickness
     real(wp), parameter :: ds_t = 130E-6_wp
-    integer :: count = 0, is_bp
+    integer :: count = 15, is_bp
         
     contains
-    subroutine black_phosphorus_config(freq_in, layers_in, inc_field, theta_in, xi_in )
+    subroutine black_phosphorus_config(freq_in, layers_in, inc_field, theta_in, xi_in, parameters )
         use Layer_Class
         use Black_Phosphorus_Sigma
         use Fields_Class
@@ -19,6 +19,7 @@ module Black_Phosphorus
         integer :: i
         real(wp), intent(in), optional :: theta_in, xi_in
         complex(wp), dimension(2, 2) :: bp_sigma_mat 
+        real(wp), intent(in), optional, dimension(:) :: parameters
         ! defected Si thickness
         
         ! update paramters relative to freq and allocate array

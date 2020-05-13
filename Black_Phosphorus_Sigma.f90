@@ -49,7 +49,7 @@
     end function bp_sigma
     
      function bp_sigma_b0(freq,n,b_0) result(sigma_mat)
-         real(wp), intent(in) :: freq
+        real(wp), intent(in) :: freq
         ! carrier density (adjustable)
         real(wp), intent(in) :: n 
         complex(wp) , dimension(2,2) :: sigma_mat
@@ -63,8 +63,49 @@
         sigma_mat(1,2) = - n * (e**2.0_wp)/m_star * omega_c / ((omega+(0.0_wp,1.0_wp)*xi_bp)**2.0_wp - omega_c**2.0_wp)
         sigma_mat(2,1) = - sigma_mat(1,2)
         sigma_mat(2,2) = (0.0_wp,1.0_wp) * n * (e**2.0_wp) / m_yy * (omega + (0.0_wp,1.0_wp) * xi_bp) / ( (omega + (0.0_wp,1.0_wp)* xi_bp)**2.0_wp - omega_c**2.0_wp )
-             
      end function bp_sigma_b0
     
-    
+    !!! plot sigma of bp
+    subroutine plot_bp_sigma(freq_start,freq_end,n_p,n,b_0)
+        use Plot_Pgplot
+        
+        real(wp), intent(in) :: freq_start, freq_end
+        ! carrier density (adjustable)
+        real(wp), intent(in) :: n
+        integer, intent(in) :: n_p        
+        real(wp), intent(in) :: b_0
+        real(wp) :: freq_cur, freq_step
+        real, allocatable :: freq_array(:)
+        real, allocatable :: sigma_x_real(:), sigma_x_imag(:), sigma_y_real(:), sigma_y_imag(:), sigma_h_real(:), sigma_h_imag(:)
+        complex(wp), dimension(2,2) :: sigma_bp_cur
+        integer :: i
+        allocate(freq_array(n_p))
+        allocate(sigma_x_real(n_p))
+        allocate(sigma_x_imag(n_p))
+        allocate(sigma_y_real(n_p))
+        allocate(sigma_y_imag(n_p))
+        allocate(sigma_h_real(n_p))
+        allocate(sigma_h_imag(n_p))
+        
+        if (n_p .EQ. 1) then
+            freq_step = 0.0_wp
+        else
+            freq_step = (freq_end-freq_start)/(n_p-1)
+        end if
+        
+        do i = 1,n_p
+            freq_cur = freq_start + freq_step * i
+            sigma_bp_cur = bp_sigma_b0(freq_cur,n,b_0)
+            freq_array(i) = real(freq_cur / 1E12_wp)
+            sigma_x_real(i) = real(sigma_bp_cur(1,1))
+            sigma_x_imag(i) = AIMAG(sigma_bp_cur(1,1))
+            sigma_y_real(i) = real(sigma_bp_cur(2,2))
+            sigma_y_imag(i) = AIMAG (sigma_bp_cur(2,2))
+            sigma_h_real(i) = real(sigma_bp_cur(1,2))
+            sigma_h_imag(i) = AIMAG(sigma_bp_cur(1,2))
+        end do
+        
+        call plot_1d(freq_array,sigma_h_real,y2 = sigma_h_imag, x_label = 'Freq(THz)', y_label = 'Z(ohm)', title = 'Sigma Plot')
+        
+    end subroutine plot_bp_sigma
 end module Black_Phosphorus_Sigma

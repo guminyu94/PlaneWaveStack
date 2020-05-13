@@ -1,6 +1,6 @@
 Module Faraday_Rot
     contains
-    subroutine faraday_rot_config(freq_in,layers,inc_field)
+    subroutine faraday_rot_config(freq_in,layers,inc_field, theta_in, xi_in, parameters)
         use Sim_parameters
         use Layer_Class
         use GrapheneSig
@@ -10,6 +10,8 @@ Module Faraday_Rot
         real(wp), intent(in) :: freq_in
         type(Layer), allocatable, intent(inout) :: layers(:)
         type(Fields), intent(inout) :: inc_field
+        real(wp), intent(in), optional :: theta_in, xi_in
+        real(wp), intent(in), optional, dimension(:) :: parameters
         
         call update_freq(freq_in)
         if (.NOT. allocated(layers)) then
@@ -17,8 +19,18 @@ Module Faraday_Rot
             allocate(layers(n_layers))
         end if
         
-        xi = 0.0_wp
-        theta = 0.0_wp
+        if (present(xi_in)) then
+            xi = xi_in
+        else
+            xi = 45.0_wp
+        end if
+        
+        if (present(theta_in)) then
+            ! normal inc plane wave
+            theta = theta_in
+        else
+            theta = 0.0_wp
+        end if
         
         inc_field  = Fields((1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp))
         
