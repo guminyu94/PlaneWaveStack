@@ -1,16 +1,16 @@
-module Black_Phosphorus_FR
+module Stacked_Graphene_FR
     use Sim_parameters
     use Substrate
-    use GrapheneSig
     implicit none   
 
-    integer :: p_count = 0, is_bp, is_bp_1
+    integer :: p_count = 6, is_bp, is_bp_1
         
     contains
-    subroutine bp_fr_config(freq_in, layers_in, inc_field, theta_in, xi_in, parameters )
+    subroutine stack_graphene_fr_config(freq_in, layers_in, inc_field, theta_in, xi_in, parameters )
         use Layer_Class
-        use Black_Phosphorus_Sigma
         use Fields_Class
+        use GrapheneSig
+        use graphene
         implicit none   
         real(wp), intent(in) :: freq_in
         type(Layer), allocatable, intent(inout) :: layers_in(:)
@@ -38,42 +38,38 @@ module Black_Phosphorus_FR
             ! normal inc plane wave
             theta = theta_in
         else
-            theta = 30.0_wp
+            theta = 45.0_wp
         end if
         
         k_rho = k_0 * SIN(theta / 180.0_wp * PI)
         inc_field  = Fields((1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp))
         
-        ! update constant paramters, the n can be adjusted
-        !bp_sigma_mat = bp_sigma_b0(freq_in,2.55E17_wp,3.0001_wp
+        ! these graphene paramters are imported
+        b0 = 5.0
         call sigmas(real(freq_in),sig_d,sig_h,n_d,n_h)
         sigxx = CMPLX(sig_d,wp)
         sigyy = CMPLX(sig_d,wp)
         sigyx = CMPLX(sig_h,wp)
         sigxy = CMPLX(-sig_h,wp)
-        bp_sigma_mat(1,1) = sigxx
-        bp_sigma_mat(1,2) = sigxy
-        bp_sigma_mat(2,1) = sigyx
-        bp_sigma_mat(2,2) = sigyy
         
         is_bp_1 = 0
         ! first layer is bp and incoming media air
         if (is_bp_1 .EQ. 1) then 
-            layers_in(1)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), bp_sigma_mat(1,1), bp_sigma_mat(2,2), bp_sigma_mat(1,2), bp_sigma_mat(2,1), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
+            layers_in(1)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
         else
             layers_in(1)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
         end if
         
-        layers_in(2)=Layer(si_e, (1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp),  0.0001e-06_wp)
+        layers_in(2)=Layer(si_e, (1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 7.9745e-06_wp)
         
         ! add bp 
         is_bp = 1
         
         do i = 1,p_count
             if (is_bp .EQ. 1) then 
-                layers_in(i*3)=Layer(si_e, (1.0_wp,0.0_wp), bp_sigma_mat(1,1), bp_sigma_mat(2,2), bp_sigma_mat(1,2), bp_sigma_mat(2,1), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp),   8.7719e-06_wp)
-                layers_in(i*3+1)=Layer(sic_e, (1.0_wp,0.0_wp),bp_sigma_mat(1,1),bp_sigma_mat(2,2), bp_sigma_mat(1,2), bp_sigma_mat(2,1), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 1.4006e-05_wp)
-                layers_in(i*3+2)=Layer(polymethylpentene_e, (1.0_wp,0.0_wp),bp_sigma_mat(1,1),bp_sigma_mat(2,2), bp_sigma_mat(1,2), bp_sigma_mat(2,1), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 2.0690e-05_wp)
+                layers_in(i*3)=Layer(si_e, (1.0_wp,0.0_wp), sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 8.7719e-06_wp)
+                layers_in(i*3+1)=Layer(sic_e, (1.0_wp,0.0_wp),sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 1.4006e-05_wp)
+                layers_in(i*3+2)=Layer(polymethylpentene_e, (1.0_wp,0.0_wp),sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 2.0690e-05_wp)
             else
                 layers_in(i*3)=Layer(si_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp),   8.7719e-06_wp)
                 layers_in(i*3+1)=Layer(sic_e, (1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 1.4006e-05_wp)
@@ -83,5 +79,5 @@ module Black_Phosphorus_FR
 
         layers_in(p_count*3+3)=Layer(si_e, (1.0_wp,0.0_wp),(0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0E-6_wp)
         
-    end subroutine bp_fr_config
-end module Black_Phosphorus_FR
+    end subroutine stack_graphene_fr_config
+end module Stacked_Graphene_FR

@@ -53,11 +53,13 @@
 		<Filter Name="configuration">
 		<File RelativePath=".\Black_Phosphorus.f90"/>
 		<File RelativePath=".\Black_Phosphorus_FR.f90"/>
+		<File RelativePath=".\BP_FR_Sensing.f90"/>
 		<File RelativePath=".\Faraday_Rot.f90"/>
 		<File RelativePath=".\Graphene_PC_OM.f90"/>
 		<File RelativePath=".\JQSRT_case_2.f90"/>
 		<File RelativePath=".\Modified_Otto.f90"/>
 		<File RelativePath=".\Otto.f90"/>
+		<File RelativePath=".\Stacked_Graphene_FR.f90"/>
 		<File RelativePath=".\Substrate.f90"/></Filter>
 		<Filter Name="graphen_sig">
 		<File RelativePath=".\graphen_sig\constants.f90"/>

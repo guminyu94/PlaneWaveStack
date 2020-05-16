@@ -23,7 +23,7 @@ Program PlaneWaveStack_Minyu
     use S_Matrix_Class
     use Fields_Class
     use Swapper
-    use Black_Phosphorus_FR
+    use Stacked_Graphene_FR
     use GrapheneSig
     implicit none    
     
@@ -42,9 +42,9 @@ Program PlaneWaveStack_Minyu
         
     if (use_saved_config .EQ. 1) then
         ! assign config to swapper
-        fun_p => black_phosphorus_fr_config
+        fun_p => stack_graphene_fr_config
         ! swap freq
-        call freq_swap(fun_p,1E+12_wp, 15E+12_wp, 1000, 'data/OM_GPC')
+        call freq_swap(fun_p,4.5E+12_wp, 7E+12_wp, 10000, 'data/OM_GPC')
         ! plot field of a single freq
         !call fields_computation(fun_p,7.75E12_wp, 10001, 'data/fields_5t_bp_fr')
         !call plot_bp_sigma(5E12_wp,15E12_wp,1001,2.5E17_wp,5.0_wp)

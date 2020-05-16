@@ -7,7 +7,9 @@ module Substrate
     complex(wp), parameter :: sic_e = (6.5025_wp, 0.0_wp)
     complex(wp), parameter :: prism_e = (14.7456_wp, 0.0_wp)
     complex(wp), parameter :: polymethylpentene_e = (2.1025_wp, 0.0_wp)
+    complex(wp), parameter :: polymethylpentene_e_1t = (3.6100_wp, 0.0_wp)
     complex(wp), parameter :: sio2_e = (3.61_wp,0.0_wp)
+    complex(wp), parameter :: sio2_e_1t = (2.1316_wp, 0.0_wp)
     complex(wp), parameter :: si_e = (11.6964_wp,0.0_wp)
     
     

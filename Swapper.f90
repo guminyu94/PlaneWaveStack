@@ -87,10 +87,12 @@ Module Swapper
             !coeff_array_2(j) = real(ABS(tx_ref(2,2,2)))
             !(j) = real(ABS(tx_ref(2,2,1)))
             
-            angle_array(j) = ellipse_angle(tx_ref(1,1,1),tx_ref(1,2,1)) / PI * 180.0
-            coeff_array_1(j) = ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1)) / PI * 180.0
-            coeff_array_2(j) = (abs(tx_ref(2,1,1))**2.0 + abs(tx_ref(2,2,1))**2.0)
-            coeff_array_3(j) = (abs(tx_ref(1,1,1))**2.0 + abs(tx_ref(1,2,1))**2.0)
+            angle_array(j) = ellipse_angle(tx_ref(1,1,1),tx_ref(1,2,1)) / PI * 180.0_wp * (abs(tx_ref(1,1,1))**2.0 + abs(tx_ref(1,2,1))**2.0) 
+            coeff_array_1(j) = ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1)) / PI * 180.0_wp 
+            coeff_array_2(j) = abs(tx_ref(2,1,1))**2.0 
+            coeff_array_3(j) = abs(tx_ref(2,2,1))**2.0
+            
+            
             
             ! print *, 'Freq: ', freq_cur/1.0E12_wp, ' THz'
             ! print *, 'Tx_Faraday_rot_angle: ', angle_array(j) , ' Degree'
@@ -113,7 +115,9 @@ Module Swapper
         close(1) 
         
         ! call plotting subroutine
-        call plot_1d(freq_array,coeff_array_1,y2 = coeff_array_2,x_label = 'Freq(THz)', y_label = '', title = '', dev='/WZ')
+        call plot_1d(freq_array,coeff_array_1,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Faraday Rotation Angle', dev='/PS')
+        print *,'Max Amp: ', maxval(coeff_array_2)
+        print *,'Max Angle: ', maxval(coeff_array_1)
         ! call plot_1d(freq_array, coeff_array_1, 'Freq(THz)','Rx', 'Rx')
         ! call plot_1d(freq_array, coeff_array_2, 'Freq(THz)','Rx', 'Rx')
        ! call plot_1d(freq_array, coeff_array_1, coeff_array_2, coeff_array_3, 'Freq(THz)','OM Angle (Degrees)', '', dev = '/WZ')

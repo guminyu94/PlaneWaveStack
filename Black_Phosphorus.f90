@@ -48,7 +48,7 @@ module Black_Phosphorus
         ! update constant paramters, the n can be adjusted
         bp_sigma_mat = bp_sigma(freq_in,6.55E17_wp)
 
-        is_bp = 1
+        is_bp = 0
         
         if (is_bp .EQ. 1) then
             ! first layer is bp and incoming media air

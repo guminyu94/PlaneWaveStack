@@ -13,18 +13,18 @@
     
     implicit none
     
-    real, parameter :: muc = 510 * 8.621738E-5   !1.0 ! 0.2 ! eV
+    real :: muc = 1   !1.0 ! 0.2 ! eV
 
-    real, parameter :: tk = 10 ! 300K
+    real, parameter :: tk = 300 ! 300K
 
     real, parameter :: vf = 1.0e6
 
-    real, parameter :: tau = 0.5e-12 !0.5e-12   !3.0e-12 !  s 
+    real :: tau = 0.5e-12 !0.5e-12   !3.0e-12 !  s 
 
     real, parameter :: sigmin = e / (4.0 * hbar)
 
     real, parameter :: kbt = kB * tK
     
-    real, parameter :: b0 = 1
+    real :: b0 = 5
     
 end module graphene
