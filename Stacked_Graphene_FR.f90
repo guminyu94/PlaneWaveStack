@@ -2,8 +2,11 @@ module Stacked_Graphene_FR
     use Sim_parameters
     use Substrate
     implicit none   
-
-    integer :: p_count = 6, is_bp, is_bp_1
+    integer, parameter :: n_mat = 2
+    complex(wp) :: eps_array(n_mat)
+    real(wp) :: thickness_array(n_mat)
+    integer :: p_count = 2, is_g, is_g_1
+    
         
     contains
     subroutine stack_graphene_fr_config(freq_in, layers_in, inc_field, theta_in, xi_in, parameters )
@@ -15,11 +18,18 @@ module Stacked_Graphene_FR
         real(wp), intent(in) :: freq_in
         type(Layer), allocatable, intent(inout) :: layers_in(:)
         type(Fields), intent(inout) :: inc_field
-        integer :: i
+        integer :: i, j
         complex(wp), dimension(2, 2) :: bp_sigma_mat 
         real(wp), intent(in), optional :: theta_in, xi_in
         real(wp), intent(in), optional, dimension(:) :: parameters
-        ! defected Si thickness
+        
+        eps_array(1) = si_e
+        eps_array(2) = sic_e
+        !eps_array(3) = polymethylpentene_e
+        
+        thickness_array(1) = 8.7719e-06_wp
+        thickness_array(2) = 1.4006e-05_wp
+        !thickness_array(3) = 2.0690e-05_wp
         
         ! update paramters relative to freq and allocate array
         call update_freq(freq_in)
@@ -38,7 +48,7 @@ module Stacked_Graphene_FR
             ! normal inc plane wave
             theta = theta_in
         else
-            theta = 45.0_wp
+            theta = 0.0_wp
         end if
         
         k_rho = k_0 * SIN(theta / 180.0_wp * PI)
@@ -52,32 +62,32 @@ module Stacked_Graphene_FR
         sigyx = CMPLX(sig_h,wp)
         sigxy = CMPLX(-sig_h,wp)
         
-        is_bp_1 = 0
+        is_g_1 = 0
         ! first layer is bp and incoming media air
-        if (is_bp_1 .EQ. 1) then 
+        if (is_g_1 .EQ. 1) then 
             layers_in(1)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
         else
             layers_in(1)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
         end if
         
-        layers_in(2)=Layer(si_e, (1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 7.9745e-06_wp)
+        layers_in(2)=Layer(si_e, (1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 30.9745e-06_wp)
         
-        ! add bp 
-        is_bp = 1
+        ! if add graphene
+        is_g = 1
+        if (is_g .EQ. 0) then
+            sigxx = (0.0_wp,0.0_wp)
+            sigyy = (0.0_wp,0.0_wp)
+            sigyx = (0.0_wp,0.0_wp)
+            sigxy = (0.0_wp,0.0_wp)
+        end if
         
-        do i = 1,p_count
-            if (is_bp .EQ. 1) then 
-                layers_in(i*3)=Layer(si_e, (1.0_wp,0.0_wp), sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 8.7719e-06_wp)
-                layers_in(i*3+1)=Layer(sic_e, (1.0_wp,0.0_wp),sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 1.4006e-05_wp)
-                layers_in(i*3+2)=Layer(polymethylpentene_e, (1.0_wp,0.0_wp),sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 2.0690e-05_wp)
-            else
-                layers_in(i*3)=Layer(si_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp),   8.7719e-06_wp)
-                layers_in(i*3+1)=Layer(sic_e, (1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 1.4006e-05_wp)
-                layers_in(i*3+2)=Layer(polymethylpentene_e,(1.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp),  2.0690e-05_wp)
-            end if
+        do i = 1, p_count
+            do j = 1, n_mat
+                layers_in((i-1)*n_mat+2+j)=Layer(eps_array(j), (1.0_wp,0.0_wp), sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), thickness_array(j))
+            end do
         end do
 
-        layers_in(p_count*3+3)=Layer(si_e, (1.0_wp,0.0_wp),(0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0E-6_wp)
+        layers_in(p_count*n_mat+3)=Layer(si_e, (1.0_wp,0.0_wp),(0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0E-6_wp)
         
     end subroutine stack_graphene_fr_config
 end module Stacked_Graphene_FR

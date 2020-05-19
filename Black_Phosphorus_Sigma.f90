@@ -76,17 +76,14 @@
         real(wp), intent(in) :: b_0
         real(wp) :: freq_cur, freq_step
         real, allocatable :: freq_array(:)
-        real, allocatable :: sigma_x_real(:), sigma_x_imag(:), sigma_y_real(:), sigma_y_imag(:), sigma_h_real(:), sigma_h_imag(:)
+        real, allocatable, dimension(:,:) :: sigma_x,sigma_y, sigma_h
         complex(wp), dimension(2,2) :: sigma_bp_cur
         integer :: i
         allocate(freq_array(n_p))
-        allocate(sigma_x_real(n_p))
-        allocate(sigma_x_imag(n_p))
-        allocate(sigma_y_real(n_p))
-        allocate(sigma_y_imag(n_p))
-        allocate(sigma_h_real(n_p))
-        allocate(sigma_h_imag(n_p))
-        
+        allocate(sigma_x(2,n_p))
+        allocate(sigma_y(2,n_p))
+        allocate(sigma_h(2,n_p))
+
         if (n_p .EQ. 1) then
             freq_step = 0.0_wp
         else
@@ -97,15 +94,15 @@
             freq_cur = freq_start + freq_step * i
             sigma_bp_cur = bp_sigma_b0(freq_cur,n,b_0)
             freq_array(i) = real(freq_cur / 1E12_wp)
-            sigma_x_real(i) = real(sigma_bp_cur(1,1))
-            sigma_x_imag(i) = AIMAG(sigma_bp_cur(1,1))
-            sigma_y_real(i) = real(sigma_bp_cur(2,2))
-            sigma_y_imag(i) = AIMAG (sigma_bp_cur(2,2))
-            sigma_h_real(i) = real(sigma_bp_cur(1,2))
-            sigma_h_imag(i) = AIMAG(sigma_bp_cur(1,2))
+            sigma_x(1,i) = real(sigma_bp_cur(1,1))
+            sigma_x(2,i) = real(sigma_bp_cur(1,1))
+            sigma_y(1,i) = AIMAG(sigma_bp_cur(1,1))
+            sigma_y(2,i) = AIMAG(sigma_bp_cur(1,1))
+            sigma_h(1,i) = real(sigma_bp_cur(2,2))
+            sigma_h(2,i) = real(sigma_bp_cur(2,2))
         end do
         
-        call plot_1d(freq_array,sigma_h_real,y2 = sigma_h_imag, x_label = 'Freq(THz)', y_label = 'Z(ohm)', title = 'Sigma Plot')
+        call plot_1d(freq_array,sigma_h, x_label = 'Freq(THz)', y_label = 'Z(ohm)', title = 'Sigma Plot')
         
     end subroutine plot_bp_sigma
 end module Black_Phosphorus_Sigma

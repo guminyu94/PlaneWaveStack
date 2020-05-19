@@ -139,4 +139,26 @@ Module Math
         
    end function ellipse_angle
    
+   subroutine phase_unwrap_1d(xw)
+        real, intent(inout), allocatable :: xw(:)
+        real, allocatable :: xu(:)
+        real :: difference
+        integer :: i, n_x
+        n_x = size(xw)
+        allocate(xu(n_x))
+        xu = xw
+        ! 1D Phase Unwrap
+        do i = 2, n_x
+            difference = xw(i)-xw(i-1);
+            if (difference > PI) then
+                xu(i:n_x) = xu(i:n_x) - 2.0 * PI;
+            else if (difference < -PI) then
+                xu(i:n_x) = xu(i:n_x) + 2.0 * PI;
+            end if
+        end do
+        xw = xu
+        deallocate(xu)
+   end subroutine phase_unwrap_1d
+   
+   
 end Module Math
