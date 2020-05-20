@@ -130,10 +130,7 @@ Module Math
         if (Ey .EQ. (0.0_wp,0.0_wp)) then
             theta = 0.0_wp
         else
-            Eref = Ex / Ey
-            phi = atan2(imag(Eref),real(Eref))
-            phi = atan2(imag(Eref),real(Eref)) 
-            theta = atan2(2.0_wp * abs(Ex) * abs(Ey) * cos(phi),(abs(Ex)**2.0_wp - abs(Ey)**2.0_wp)) / 2.0_wp
+            theta = atan2(2.0_wp * real(Ex * CONJG(Ey)) ,(abs(Ex)**2.0_wp - abs(Ey)**2.0_wp)) / 2.0_wp
             
         end if
         

@@ -13,7 +13,7 @@
     
     implicit none
     
-    real :: muc = 0.2   !1.0 ! 0.2 ! eV
+    real :: muc = 0.25   !1.0 ! 0.2 ! eV
 
     real, parameter :: tk = 300 ! 300K
 

@@ -44,7 +44,7 @@ Program PlaneWaveStack_Minyu
         ! assign config to swapper
         fun_p => stack_graphene_fr_config
         ! swap freq
-        call freq_swap(fun_p,3E+12_wp, 8E+12_wp, 10001, 'data/OM_GPC')
+        call freq_swap(fun_p,1E+12_wp, 15E+12_wp, 10001, 'data/OM_GPC')
         ! plot field of a single freq
         !call fields_computation(fun_p,7.75E12_wp, 10001, 'data/fields_5t_bp_fr')
         !call plot_bp_sigma(5E12_wp,15E12_wp,1001,2.5E17_wp,5.0_wp)

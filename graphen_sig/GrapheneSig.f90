@@ -259,7 +259,41 @@ sigmat(2,2)=sigyy*c2+sigxx*s2-(sigxy+sigyx)*cs
 
 end subroutine SigTensor
 
+!!! plot sigma of graphene
+    subroutine plot_graphene_sigma(freq_start,freq_end,n_p,n,b_0)
+        use Plot_Pgplot
+        real(wp), intent(in) :: freq_start, freq_end
+        ! carrier density (adjustable)
+        real(wp), intent(in) :: n
+        integer, intent(in) :: n_p        
+        real(wp), intent(in) :: b_0
+        real(wp) :: freq_cur, freq_step
+        real, allocatable :: freq_array(:)
+        real, allocatable, dimension(:,:) :: sigma_array
+        integer :: i
+        allocate(freq_array(n_p))
+        allocate(sigma_x(4,n_p))
 
+        if (n_p .EQ. 1) then
+            freq_step = 0.0_wp
+        else
+            freq_step = (freq_end-freq_start)/(n_p-1)
+        end if
+        
+        do i = 1,n_p
+            freq_cur = freq_start + freq_step * i
+            sigma_bp_cur = bp_sigma_b0(freq_cur,n,b_0)
+            freq_array(i) = real(freq_cur / 1E12_wp)
+            call sigmas(freq,sig_d,sig_h,n_d,n_h)
+            sigma_array(1,i) = real(sig_d)
+            sigma_array(2,i) = AIMAG(sig_d)
+            sigma_array(3,i) = real(sig_h)
+            sigma_array(4,i) = AIMAG(sig_h)
+        end do
+        
+        call plot_1d(freq_array,sigma_array, x_label = 'Freq(THz)', y_label = 'Z(ohm)', title = 'Sigma Plot', color = (/1,1,2,2/),style=(/1,2,1,2/))
+        
+    end subroutine plot_bp_sigma
 end module GrapheneSig
 
 

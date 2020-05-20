@@ -83,7 +83,7 @@ Module Swapper
             freq_array(j) = real(freq_cur/1.0E12_wp)
             
             ! save data for plotting
-            angle_array_wrap(j) = ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1)) 
+            angle_array_wrap(j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1)) )
             data_array(1,j) = abs(tx_ref(2,1,1))**2.0 +  abs(tx_ref(2,2,1))**2.0
             data_array(2,j) = abs(tx_ref(2,1,1))**2.0 
             data_array(3,j) = abs(tx_ref(2,2,1))**2.0
@@ -106,16 +106,16 @@ Module Swapper
             
         end do
         
-        angle_array_wrap = angle_array_wrap * 2.0_wp
-        call phase_unwrap_1d(angle_array_wrap)
-        angle_array(1,:) = angle_array_wrap / PI * 180 
-        angle_array(2,:) = angle_array(1,:) * data_array(1,:)
+        angle_array_wrap = angle_array_wrap * 2.0
+        !call phase_unwrap_1d(angle_array_wrap)
+        angle_array(1,:) = (angle_array_wrap / PI * 180.0 /2.0)
+        angle_array(2,:) = data_array(1,:) * 100.0
         close(1) 
         
         ! call plotting subroutine
         !call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Faraday Rotation Angle', dev='/WZ', style_flag = 1, color_flag = 1)
         !call plot_1d(freq_array, data_array,  x_label = 'Freq(THz)', y_label = 'Amp (A.U.) ', title = 'Ref Coeff Plot', dev='ref_coeff.ps/PS', color_flag = 1, style_flag = 1)
-        call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Faraday Rotation Angle', dev='/WZ', style_flag = 1, color_flag = 1)
+        call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Kerr Rotation Angle', dev='/WZ', style_flag = 1, color_flag = 1)
         deallocate(freq_array)
         deallocate(data_array)
         

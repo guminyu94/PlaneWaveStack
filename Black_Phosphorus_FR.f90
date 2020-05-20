@@ -38,7 +38,7 @@ module Black_Phosphorus_FR
             ! normal inc plane wave
             theta = theta_in
         else
-            theta = 30.0_wp
+            theta = 15.0_wp
         end if
         
         k_rho = k_0 * SIN(theta / 180.0_wp * PI)
