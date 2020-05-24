@@ -11,7 +11,7 @@ Module S_Matrix_Class
     use Math
     implicit none
     private
-    public :: S_Matrix, S_Matrices_Cascade, print_S_Matrix
+    public :: S_Matrix, S_Matrices_Cascade, print_S_Matrix, compute_S_matrix
     
     ! define S_Matrix type
     Type S_Matrix
@@ -31,13 +31,13 @@ Module S_Matrix_Class
     
     contains
     ! initalization function of S_Matrix class
-    Type(S_Matrix) function S_Matrix_initalization(layer_n_in,layer_n_1_in)
+    Type(S_Matrix) function S_Matrix_initalization(layer_n,layer_n_1)
         implicit none 
-        Type(Layer), intent(in) :: layer_n_in, layer_n_1_in
-        S_Matrix_initalization%alpha_n = MATMUL( -1.0_wp * unit_matrix + 2.0_wp * ( ( unit_matrix + MATMUL(layer_n_in%Z_n , layer_n_1_in%Y_n + layer_n_in%sigma_n) )**-1 ), layer_n_in%P_n )
-        S_Matrix_initalization%delta_n = 2.0_wp * MATMUL(( unit_matrix + MATMUL( layer_n_in%Z_n, layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1, layer_n_in%P_n)
-        S_Matrix_initalization%gamma_n = MATMUL( unit_matrix - MATMUL((unit_matrix + MATMUL( layer_n_in%Z_n, layer_n_1_in%Y_n + layer_n_in%sigma_n))**-1, unit_matrix - MATMUL( layer_n_in%Z_n, layer_n_1_in%Y_n - layer_n_in%sigma_n )), layer_n_1_in%P_n)
-        S_Matrix_initalization%beta_n =  -1.0_wp * MATMUL( MATMUL( (unit_matrix + MATMUL( layer_n_in%Z_n, layer_n_1_in%Y_n + layer_n_in%sigma_n ))**-1, unit_matrix - MATMUl( layer_n_in%Z_n,  layer_n_1_in%Y_n - layer_n_in%sigma_n)), layer_n_1_in%P_n)
+        Type(Layer), intent(in) :: layer_n, layer_n_1
+        S_Matrix_initalization%alpha_n = MATMUL( -1.0_wp * unit_matrix + 2.0_wp * ( ( unit_matrix + MATMUL(layer_n%Z_n , layer_n_1%Y_n + layer_n%sigma_n) )**-1 ), layer_n%P_n )
+        S_Matrix_initalization%delta_n = 2.0_wp * MATMUL(( unit_matrix + MATMUL( layer_n%Z_n, layer_n_1%Y_n + layer_n%sigma_n))**-1, layer_n%P_n)
+        S_Matrix_initalization%gamma_n = MATMUL( unit_matrix - MATMUL((unit_matrix + MATMUL( layer_n%Z_n, layer_n_1%Y_n + layer_n%sigma_n))**-1, unit_matrix - MATMUL( layer_n%Z_n, layer_n_1%Y_n - layer_n%sigma_n )), layer_n_1%P_n)
+        S_Matrix_initalization%beta_n =  -1.0_wp * MATMUL( MATMUL( (unit_matrix + MATMUL( layer_n%Z_n, layer_n_1%Y_n + layer_n%sigma_n ))**-1, unit_matrix - MATMUl( layer_n%Z_n,  layer_n_1%Y_n - layer_n%sigma_n)), layer_n_1%P_n)
     end function S_Matrix_initalization
     
     ! opertor override, star product function for S matrix
@@ -78,6 +78,20 @@ Module S_Matrix_Class
         print*, "S Matrix beta: ", S_matrix_in%beta_n
     end subroutine print_S_matrix
     
+    subroutine compute_S_matrix(layers,S_Matrices)
+        type(Layer), allocatable, intent(in) :: layers(:)
+        type(S_Matrix), allocatable, intent(inout) :: S_Matrices(:)
+        integer i
+        ! allocate the S_Matrix
+        if (.NOT. allocated(S_Matrices)) then
+            allocate(S_Matrices(size(layers)-1))
+        end if
+        ! compute S matrix
+        do i = 1, size(layers)-1
+            ! assemble S Matrix from layer obj
+            S_Matrices(i) = S_Matrix(layers(i),layers(i+1))
+        end do
+    end subroutine compute_S_matrix
 end Module S_Matrix_Class
     
     

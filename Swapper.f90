@@ -32,24 +32,30 @@ Module Swapper
     
     contains
     ! swap freq and obtain the ref and tx coeff
-    subroutine freq_swap(fun,freq_start,freq_end,n_points,file_name)
+    subroutine freq_swap(fun,freq_start,freq_end,n_points,file_name,output,savefig_flag)
         use Plot_Pgplot
+        use Sim_parameters, only : pec_flag
         implicit none
         real(wp), intent(in) :: freq_start, freq_end
         integer, intent(in) :: n_points
         procedure (fun_temp), pointer :: fun
         real(wp) :: freq_step, freq_cur
         complex(wp), dimension(2,2,2) :: tx_ref
-        character(len=*), intent(in) :: file_name
+        character(len=*), intent(in), optional :: file_name
         integer :: i, j
         logical :: file_exists
         type(Fields), allocatable :: fields_layer(:)
-        real, allocatable :: freq_array(:), data_array(:,:), angle_array(:,:), angle_array_wrap(:)
+        real, allocatable :: freq_array(:), data_array(:,:), angle_array(:,:) 
+        real(wp), optional, allocatable, intent(inout) :: output(:)
+        integer, intent(in), optional :: savefig_flag
         
         allocate(freq_array(n_points))
         allocate(data_array(3,n_points))
         allocate(angle_array(2,n_points))
-        allocate(angle_array_wrap(n_points))
+        
+        if (present(output) .and. (.NOT. allocated(output))) then
+            allocate(output(2))
+        end if
         
         if (n_points .EQ. 1) then
             freq_step = 0.0_wp
@@ -58,32 +64,39 @@ Module Swapper
         end if
         
         ! openfile
-        inquire(FILE = file_name // '_tx_ref' // '.dat', EXIST=file_exists)
-        if ( file_exists ) then
-            open(1, file = file_name // '_tx_ref' // '.dat', status = 'old')
-        else
-            open(1, file = file_name // '_tx_ref' // '.dat', status = 'new')
+        if (present(file_name)) then
+            inquire(FILE = file_name // '_tx_ref' // '.dat', EXIST=file_exists)
+            if ( file_exists ) then
+                open(11, file = file_name // '_tx_ref' // '.dat', status = 'old')
+            else
+                open(11, file = file_name // '_tx_ref' // '.dat', status = 'new')
+            end if
         end if
         
-    
         do j = 1, n_points
             !load parmeters
             freq_cur = real(j-1,wp) * freq_step + freq_start
             
             call fun(freq_cur,layers,inc_field)
-            call compute_S_matrix
+            call compute_S_matrix(layers,S_Matrices)
             
-            ! obtain reflection coeff
-            tx_ref = trans_ref_coeff_freespace(S_Matrices)
-            
+            if (pec_flag .EQ. 1) then
+                ! obtain reflection coeff of PEC backed
+                tx_ref = trans_ref_coeff_pec(S_Matrices,layers(size(layers))%P_n)
+            else
+                 ! obtain reflection coeff of free space
+                tx_ref = trans_ref_coeff_freespace(S_Matrices)
+            end if
             
             ! write to file
-            write(1,*) freq_cur, ABS(tx_ref(1,1,1))**2.0_wp, ABS(tx_ref(1,1,2))**2.0_wp, ABS(tx_ref(1,2,1))**2.0_wp, ABS(tx_ref(1,2,2))**2.0_wp, ABS(tx_ref(2,1,1))**2.0_wp, ABS(tx_ref(2,1,2))**2.0_wp, ABS(tx_ref(2,2,1))**2.0_wp, ABS(tx_ref(2,2,2))**2.0_wp
-            
+            if (present(file_name)) then
+                write(11,*) freq_cur, ABS(tx_ref(1,1,1))**2.0_wp, ABS(tx_ref(1,1,2))**2.0_wp, ABS(tx_ref(1,2,1))**2.0_wp, ABS(tx_ref(1,2,2))**2.0_wp, ABS(tx_ref(2,1,1))**2.0_wp, ABS(tx_ref(2,1,2))**2.0_wp, ABS(tx_ref(2,2,1))**2.0_wp, ABS(tx_ref(2,2,2))**2.0_wp
+            end if
+                
             freq_array(j) = real(freq_cur/1.0E12_wp)
             
             ! save data for plotting
-            angle_array_wrap(j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1)) )
+            angle_array(1,j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1))) / PI * 180.0
             data_array(1,j) = abs(tx_ref(2,1,1))**2.0 +  abs(tx_ref(2,2,1))**2.0
             data_array(2,j) = abs(tx_ref(2,1,1))**2.0 
             data_array(3,j) = abs(tx_ref(2,2,1))**2.0
@@ -106,16 +119,25 @@ Module Swapper
             
         end do
         
-        angle_array_wrap = angle_array_wrap * 2.0
         !call phase_unwrap_1d(angle_array_wrap)
-        angle_array(1,:) = (angle_array_wrap / PI * 180.0 /2.0)
-        angle_array(2,:) = data_array(1,:) * 100.0
-        close(1) 
+        
+        angle_array(2,:) = (data_array(1,:)**0.5) * angle_array(1,:)
+
+        print *, 'FOM_BEST: ', maxval(angle_array(2,:))
         
         ! call plotting subroutine
-        !call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Faraday Rotation Angle', dev='/WZ', style_flag = 1, color_flag = 1)
-        !call plot_1d(freq_array, data_array,  x_label = 'Freq(THz)', y_label = 'Amp (A.U.) ', title = 'Ref Coeff Plot', dev='ref_coeff.ps/PS', color_flag = 1, style_flag = 1)
-        call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Kerr Rotation Angle', dev='/WZ', style_flag = 1, color_flag = 1)
+        if (present(savefig_flag) .and. (savefig_flag .EQ. 1) ) then 
+            call plot_1d(freq_array, data_array,  x_label = 'Freq(THz)', y_label = 'Amp (A.U.) ', title = 'Ref Coeff Plot', dev='ref_coeff.ps/PS', color = (/1,2,2/), style = (/1,2,3/))
+            call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Kerr Rotation Angle & FOM', dev='Kerr_rot.ps/PS', style_flag = 1, color_flag = 1)
+            print*, 'Saved to Kerr_rot.ps'
+        else
+            call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Kerr Rotation Angle & FOM', dev='/WZ', style_flag = 1, color_flag = 1)
+        end if
+            
+        if (present(file_name)) then
+            close(11)
+        end if
+    
         deallocate(freq_array)
         deallocate(data_array)
         
@@ -151,7 +173,7 @@ Module Swapper
             ! assume xi is 0
             call fun(freq, layers, inc_field,theta_cur, 0.0_wp )
                         
-            call compute_S_matrix
+            call compute_S_matrix(layers,S_Matrices)
             
             ! obtain reflection coeff
             tx_ref = trans_ref_coeff_freespace(S_Matrices)
@@ -187,13 +209,14 @@ Module Swapper
     end subroutine theta_swap
     
     ! obtain fields based on freq, fun stands for the function pointer of model's configuration
-    subroutine fields_computation(fun,freq_in, n_points, file_name)
+    subroutine fields_computation(fun,freq, n_points, file_name, savefig_flag)
         use Plot_Pgplot
+        use Sim_parameters, only : pec_flag
         implicit none
         procedure (fun_temp), pointer :: fun
-        real(wp), intent(in) :: freq_in
+        real(wp), intent(in) :: freq
         integer, intent(in) :: n_points
-        character(len=*), intent(in) :: file_name
+        character(len=*), intent(in), optional :: file_name
         real(wp) :: totol_z=0.0_wp, current_z=0.0_wp, layer_z=0.0_wp, dz=0.0_wp, dz_round = 0.0_wp
         integer :: i, current_layer = 1
         complex(wp), dimension(2) :: fields_forward, fields_backward, E_field, H_field
@@ -201,32 +224,31 @@ Module Swapper
         logical :: file_exists
         ! z plotting range for the first and last layer
         real(wp) :: z_extension
-        
         real, allocatable :: z_array(:), field_array(:,:)
+        integer, intent(in), optional :: savefig_flag
         
         ! layer's field amplitude
         Type(Fields), allocatable :: fields_amp_layer(:)
         
         ! plotting data array
         allocate(z_array(n_points))
-        allocate(field_array(1,n_points))
+        allocate(field_array(2,n_points))
         
         ! load model paramters
-        call fun(freq_in, layers, inc_field)
-        call compute_S_matrix
-        
-        ! 1st layer amplitdue omitted 
-        allocate(fields_amp_layer(n_layers))
+        call fun(freq, layers, inc_field)
+        call compute_S_matrix(layers,S_Matrices)
         
         ! compute each layer's fields amplitude
         call cal_fields_amp(S_Matrices, inc_field, fields_amp_layer)
         
-        ! output data into a file
-        inquire(FILE=file_name // '_fields' // '.dat', EXIST = file_exists)
-        if (file_exists) then
-            open(10, file = file_name // '_fields' // '.dat', status = 'old')
-        else
-            open(10, file = file_name // '_fields' // '.dat', status = 'new')
+        if (present(file_name)) then      
+            ! output data into a file
+            inquire(FILE=file_name // '_fields' // '.dat', EXIST = file_exists)
+            if (file_exists) then
+                open(10, file = file_name // '_fields' // '.dat', status = 'old')
+            else
+                open(10, file = file_name // '_fields' // '.dat', status = 'new')
+            end if
         end if
         
         ! calculate the total thickness
@@ -234,12 +256,19 @@ Module Swapper
             totol_z = totol_z + layers(i)%d
         end do
         
+        ! extend the z by quarter total thickness
         if (totol_z .EQ. 0.0_wp)  then
             z_extension = lambda_0
         else
             z_extension = totol_z / 4.0_wp
         end if
-        totol_z = totol_z + 2.0_wp * z_extension
+        
+        ! if pec backed, then 
+        if (pec_flag .EQ. 1) then
+            totol_z = totol_z + z_extension
+        else 
+            totol_z = totol_z + 2.0_wp * z_extension
+        end if
         dz = totol_z / real((n_points-1),wp)
         dz_round = dz/1E8
         
@@ -271,106 +300,120 @@ Module Swapper
             
             ! not sure which sign of eta should I choose
             H_field = MATMUL(layers(current_layer)%Y_n, fields_forward) - MATMUL(layers(current_layer)%Y_n, fields_backward)
-            write(10,*) REAL(current_z), REAL(Abs(E_field(1))), REAL(Abs(E_field(2))), REAL(Abs(H_field(1)*eta_0)), REAL(Abs(H_field(2)*eta_0))
             
-            ! plot the E_e field
+            if (present(file_name)) then 
+                write(10,*) REAL(current_z), REAL(Abs(E_field(1))), REAL(Abs(E_field(2))), REAL(Abs(H_field(1)*eta_0)), REAL(Abs(H_field(2)*eta_0))
+            end if
+            
+            ! save the E field
             z_array(i) = REAL(current_z)
             field_array(1,i) = (real(E_field(1)))
-
+            field_array(2,i) = (real(E_field(2)))
+            
             current_z = current_z + dz
             layer_z = layer_z + dz
         end do
         
         ! call plotting subroutine
-        call plot_1d(z_array,field_array, x_label = 'z(m)', y_label = 'E_Field_e(v/m)', title = 'Fields Plot')
+        if (present(savefig_flag) .and. (savefig_flag .eq. 1)) then
+            call plot_1d(z_array,field_array, x_label = 'z(m)', y_label = 'E_Field(V/m)', title = 'E Fields Plot', style_flag = 1,dev='e_fields.ps/PS')
+        else
+            call plot_1d(z_array,field_array, x_label = 'z(m)', y_label = 'E_Field(V/m)', title = 'E Fields Plot', style_flag = 1,dev='/WZ')
+        end if
+        
         deallocate(z_array)
         deallocate(field_array)
-    end subroutine fields_computation
-    
-    subroutine compute_S_matrix()
-        integer i
-        ! allocate the S_Matrix
-        if (.NOT. allocated(S_Matrices)) then
-            allocate(S_Matrices(n_layers-1))
+        deallocate(fields_amp_layer)
+        
+        if (present(file_name)) then
+            close(10)
         end if
-        ! compute S matrix
-        do i = 1, n_layers-1
-            ! assemble S Matrix from layer obj
-            S_Matrices(i) = S_Matrix(layers(i),layers(i+1))
-        end do
-    end subroutine compute_S_matrix
+    end subroutine fields_computation
+
     
     ! calculate fields' amplitude on each layer
-    subroutine cal_fields_amp(S_matrices_in, inc_fields, fields_amp_layer_in)
+    subroutine cal_fields_amp(S_matrices, inc_fields, fields_amp_layer)
+        use Sim_parameters, only : pec_flag 
         implicit none
-        type(S_Matrix), intent(in), allocatable :: S_matrices_in(:)
+        type(S_Matrix), intent(in), allocatable :: S_matrices(:)
         type(Fields), intent(in) :: inc_fields
-        type(Fields), allocatable, intent(inout) :: fields_amp_layer_in(:)
+        type(Fields), allocatable, intent(inout) :: fields_amp_layer(:)
         integer :: n
         type(S_Matrix) :: S_matrices_Cascaded_1_n, S_matrices_Cascaded_n_N
         integer :: n_S_matrices
         complex(wp), dimension(2,2,2) :: tx_ref
         complex(wp), dimension(2) :: field_forward, field_backward
-        n_S_matrices = SIZEOF(S_matrices_in)/SIZEOF(S_matrices_in(1))
+        n_S_matrices = SIZEOF(S_matrices)/SIZEOF(S_matrices(1))
         
-        ! calculate last layer, assume free space and no inc field from the last layer
-        tx_ref = trans_ref_coeff_freespace(S_matrices_in)
+        if (.not. allocated(fields_amp_layer)) then
+            allocate(fields_amp_layer(n_layers))
+        end if
         
-        fields_amp_layer_in(1)%Field_1 = inc_fields%Field_1
-        fields_amp_layer_in(1)%Field_2 = MATMUL(tx_ref(2,:,:),inc_fields%Field_1)
+        if (pec_flag .EQ. 1) then
+            tx_ref = trans_ref_coeff_pec(S_matrices,layers(size(layers))%P_n)
+        else
+            ! calculate last layer, assume free space and no inc field from the last layer
+            tx_ref = trans_ref_coeff_freespace(S_matrices)
+        end if
+        
+        
+        fields_amp_layer(1)%Field_1 = inc_fields%Field_1
+        fields_amp_layer(1)%Field_2 = MATMUL(tx_ref(2,:,:),inc_fields%Field_1)
 
         !print*, 1
-        !print*, 'v_forward: ', abs(fields_amp_layer_in(1)%Field_1)
-        !print*, 'v_backward: ', abs(fields_amp_layer_in(1)%Field_2)
+        !print*, 'v_forward: ', abs(fields_amp_layer(1)%Field_1)
+        !print*, 'v_backward: ', abs(fields_amp_layer(1)%Field_2)
         
         do n = 1, n_S_matrices-1
-            S_matrices_Cascaded_1_n = S_Matrices_Cascade(S_matrices_in,1,n)
-            S_matrices_Cascaded_n_N = S_Matrices_Cascade(S_matrices_in,n+1,n_S_matrices)
+            S_matrices_Cascaded_1_n = S_Matrices_Cascade(S_matrices,1,n)
+            S_matrices_Cascaded_n_N = S_Matrices_Cascade(S_matrices,n+1,n_S_matrices)
             field_forward = MATMUL((unit_matrix - MATMUL( S_matrices_Cascaded_1_n%beta_n , S_matrices_Cascaded_n_N%alpha_n ))**-1 , MATMUL( S_matrices_Cascaded_1_n%delta_n,inc_fields%Field_1) )
             field_backward = MATMUL((unit_matrix - MATMUL( S_matrices_Cascaded_n_N%alpha_n , S_matrices_Cascaded_1_n%beta_n ))**-1 , MATMUL( MATMUL ( S_matrices_Cascaded_n_N%alpha_n , S_matrices_Cascaded_1_n%delta_n), inc_fields%Field_1) )
-            fields_amp_layer_in( n + 1 ) = Fields(field_forward,field_backward)
+            fields_amp_layer( n + 1 ) = Fields(field_forward,field_backward)
+            
             !print*, n + 1
-            !print*, 'v_forward: ', abs(fields_amp_layer_in(n+1)%Field_1)
-            !print*, 'v_backward: ', abs(fields_amp_layer_in(n+1)%Field_2)
+            !print*, 'v_forward: ', abs(fields_amp_layer(n+1)%Field_1)
+            !print*, 'v_backward: ', abs(fields_amp_layer(n+1)%Field_2)
         end do
         
-        fields_amp_layer_in(n_S_matrices+1)%Field_1 = MATMUL(tx_ref(1,:,:),inc_fields%Field_1)
-        fields_amp_layer_in(n_S_matrices+1)%Field_2 = inc_fields%Field_2
+        fields_amp_layer(n_S_matrices+1)%Field_1 = MATMUL(tx_ref(1,:,:),inc_fields%Field_1)
+        fields_amp_layer(n_S_matrices+1)%Field_2 = inc_fields%Field_2
         !print*, n+1
-        !print*, 'v_forward: ', abs(fields_amp_layer_in(n_S_matrices+1)%Field_1)
-        !print*, 'v_backward: ', abs(fields_amp_layer_in(n_S_matrices+1)%Field_2)
-        
-        
+        !print*, 'v_forward: ', abs(fields_amp_layer(n_S_matrices+1)%Field_1)
+        !print*, 'v_backward: ', abs(fields_amp_layer(n_S_matrices+1)%Field_2)
+                
     end subroutine cal_fields_amp
     
         ! tx and ref coeff of last layer with free space 
-    pure function trans_ref_coeff_freespace(S_matrices_in) result(trans_ref_coeff)
+    pure function trans_ref_coeff_freespace(S_matrices) result(trans_ref_coeff)
         implicit none    
-        type(S_Matrix), intent(in), allocatable:: S_matrices_in(:)
+        type(S_Matrix), intent(in), allocatable:: S_matrices(:)
         complex(wp), dimension(2,2,2) :: trans_ref_coeff
         type(S_Matrix) :: S_matrices_Cascaded
         integer :: n_S_matrices
-        n_S_matrices = SIZEOF(S_matrices_in)/SIZEOF(S_matrices_in(1))
+        n_S_matrices = SIZEOF(S_matrices)/SIZEOF(S_matrices(1))
         ! cascade S Matrices
-        S_matrices_Cascaded = S_Matrices_Cascade(S_matrices_in, 1, n_S_matrices)
+        S_matrices_Cascaded = S_Matrices_Cascade(S_matrices, 1, n_S_matrices)
         trans_ref_coeff(1,:,:) = S_matrices_Cascaded%delta_n
         trans_ref_coeff(2,:,:) = S_matrices_Cascaded%alpha_n
     end function trans_ref_coeff_freespace
     
     ! tx and ref coeff of last layer with PEC backed
-    pure function trans_ref_coeff_freespace_pec(S_matrices_in, P_n_in) result(trans_ref_coeff)
+    pure function trans_ref_coeff_pec(S_matrices, P_n) result(trans_ref_coeff)
         implicit none
-        type(S_Matrix), intent(in), allocatable :: S_matrices_in(:)
-        complex(wp), dimension(2,2), intent(in) :: P_n_in
+        ! the S matrices should contain the last layer, namely S_1,N
+        type(S_Matrix), intent(in), allocatable :: S_matrices(:)
+        ! P_n is the last layer's(backed by pec) phase matrix
+        complex(wp), dimension(2,2), intent(in) :: P_n
         complex(wp), dimension(2,2,2) :: trans_ref_coeff
         type(S_Matrix) :: S_matrices_Cascaded
         integer :: n_S_matrices
         
-        n_S_matrices = SIZEOF(S_matrices_in)/SIZEOF(S_matrices_in(1))
+        n_S_matrices = SIZEOF(S_matrices)/SIZEOF(S_matrices(1))
         ! cascade S Matrices
-        S_matrices_Cascaded = S_Matrices_Cascade(S_matrices_in, 1, n_S_matrices)
-        trans_ref_coeff(1,:,:) = MATMUL((unit_matrix + MATMUL(S_matrices_Cascaded%beta_n , P_n_in))**-1 , S_matrices_Cascaded%delta_n)
-        trans_ref_coeff(2,:,:) = S_matrices_Cascaded%alpha_n - MATMUL( MATMUL(S_matrices_Cascaded%gamma_n , P_n_in) , trans_ref_coeff(1,:,:))
-    end function trans_ref_coeff_freespace_pec
+        S_matrices_Cascaded = S_Matrices_Cascade(S_matrices, 1, n_S_matrices)
+        trans_ref_coeff(1,:,:) = MATMUL((unit_matrix + MATMUL(S_matrices_Cascaded%beta_n , P_n))**-1 , S_matrices_Cascaded%delta_n)
+        trans_ref_coeff(2,:,:) = S_matrices_Cascaded%alpha_n - MATMUL( MATMUL(S_matrices_Cascaded%gamma_n , P_n) , trans_ref_coeff(1,:,:))
+    end function trans_ref_coeff_pec
   
 end module Swapper

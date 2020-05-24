@@ -127,12 +127,7 @@ Module Math
         complex(wp) :: Eref
         real(wp) :: theta, phi
         
-        if (Ey .EQ. (0.0_wp,0.0_wp)) then
-            theta = 0.0_wp
-        else
-            theta = atan2(2.0_wp * real(Ex * CONJG(Ey)) ,(abs(Ex)**2.0_wp - abs(Ey)**2.0_wp)) / 2.0_wp
-            
-        end if
+        theta = atan2(2.0_wp * real(Ex * CONJG(Ey)) ,(abs(Ex)**2.0_wp - abs(Ey)**2.0_wp)) / 2.0_wp
         
    end function ellipse_angle
    

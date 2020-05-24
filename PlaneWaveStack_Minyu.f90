@@ -28,11 +28,11 @@ Program PlaneWaveStack_Minyu
     implicit none    
     
     integer :: use_saved_config
-    integer :: isPecBacked
+    integer :: isPecBacked 
     integer :: isGraphene = 0
     integer :: addSheet = 0
     integer :: i = 0
-    
+    real(wp),allocatable :: param_output(:)
     procedure(fun_temp), pointer :: fun_p
     complex(wp), dimension(2,2,2) :: tx_ref
     
@@ -44,10 +44,11 @@ Program PlaneWaveStack_Minyu
         ! assign config to swapper
         fun_p => stack_graphene_fr_config
         ! swap freq
-        call freq_swap(fun_p,1E+12_wp, 15E+12_wp, 10001, 'data/OM_GPC')
+        call freq_swap(fun_p,0.001e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 1)
+        ! plot sigma
+        call plot_graphene_sigma(0.001e12,5e12,1001,0.5,savefig_flag = 1)
         ! plot field of a single freq
-        !call fields_computation(fun_p,7.75E12_wp, 10001, 'data/fields_5t_bp_fr')
-        !call plot_bp_sigma(5E12_wp,15E12_wp,1001,2.5E17_wp,5.0_wp)
+        call fields_computation(fun_p,1.1E12_wp,1001,savefig_flag = 1)
     else
         print *, "Number of Layers"
         read (*,*) n_layers

@@ -20,6 +20,7 @@ Module Sim_parameters
     real(wp), allocatable :: d(:)
     real(wp) :: theta, xi
     integer :: n_layers
+    integer :: pec_flag
     
     contains
     subroutine update_freq(freq_in)
