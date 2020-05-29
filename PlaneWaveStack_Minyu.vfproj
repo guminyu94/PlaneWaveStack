@@ -68,13 +68,14 @@
 		<File RelativePath=".\Graphene_Drude.f90"/>
 		<File RelativePath=".\Graphene_Ribbons.f90"/>
 		<File RelativePath=".\graphen_sig\GrapheneSig.f90"/></Filter>
-		<Filter Name="plotting">
-		<File RelativePath=".\Plot_Pgplot.f90"/></Filter>
+		<Filter Name="class">
 		<File RelativePath=".\Fields_Class.f90"/>
 		<File RelativePath=".\Layer_Class.f90"/>
+		<File RelativePath=".\S_Matrix_Class.f90"/></Filter>
+		<Filter Name="plotting">
+		<File RelativePath=".\Plot_Pgplot.f90"/></Filter>
 		<File RelativePath=".\Math.f90"/>
 		<File RelativePath=".\PlaneWaveStack_Minyu.f90"/>
-		<File RelativePath=".\S_Matrix_Class.f90"/>
 		<File RelativePath=".\Sim_parameters.f90"/>
 		<File RelativePath=".\Swapper.f90"/></Filter>
 		<File RelativePath=".\ReadMe.txt"/></Files>

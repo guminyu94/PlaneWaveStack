@@ -41,14 +41,17 @@ Program PlaneWaveStack_Minyu
     use_saved_config = 1
         
     if (use_saved_config .EQ. 1) then
-        ! assign config to swapper
+        ! assign config to swapper                     
         fun_p => stack_graphene_fr_config
+        ! call compute_inter_thickness(1e12_wp)
         ! swap freq
-        call freq_swap(fun_p,0.001e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 1)
+        call freq_swap(fun_p,1.0e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 1)
+        ! swap theta
+        call theta_swap(fun_p,2e12_wp,0.0_wp, 89.999_wp, 11)
         ! plot sigma
-        call plot_graphene_sigma(0.001e12,5e12,1001,0.5,savefig_flag = 1)
+        call plot_graphene_sigma(0.1e12,5e12,1001,0.5,savefig_flag = 1)
         ! plot field of a single freq
-        call fields_computation(fun_p,1.1E12_wp,1001,savefig_flag = 1)
+        call fields_computation(fun_p,2E12_wp,1001,savefig_flag = 1)
     else
         print *, "Number of Layers"
         read (*,*) n_layers

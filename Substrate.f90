@@ -11,7 +11,7 @@ module Substrate
     complex(wp), parameter :: sio2_e = (3.61_wp,0.0_wp)
     complex(wp), parameter :: sio2_e_1t = (2.1316_wp, 0.0_wp)
     complex(wp), parameter :: si_e = (11.6964_wp,0.0_wp)
-    complex(wp), parameter :: air = (1.0_wp,0.0_wp)
+    complex(wp), parameter :: air_e = (1.0_wp,0.0_wp)
     
     contains
     pure function pc_wl(eps,freq,factor) result(thickness)
@@ -55,11 +55,12 @@ module Substrate
         type(Layer), allocatable ::  layers_temp(:)
         complex(wp), dimension(2,2,2) :: trans_ref
         integer :: i
-        
+
         if (direction .eq. 0) then
             layers_temp = layers(start_index:end_index)
         else if (direction .eq. 1) then
             ! flip the order
+            allocate(layers_temp(end_index-start_index+1))
             do i = 1, (end_index-start_index+1)
                 layers_temp(i) = layers(end_index-i+1)
             end do

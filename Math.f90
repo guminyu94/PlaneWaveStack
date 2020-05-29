@@ -131,6 +131,13 @@ Module Math
         
    end function ellipse_angle
    
+   pure function ellipticity(Ex,Ey) result(value)
+        complex(wp), intent(in) :: Ex, Ey
+        complex(wp) :: rpp, rps
+        real(wp) :: value
+        value = (abs(Ex + (1.0_wp,0.0_wp)*Ey)**2.0_wp - abs(Ex - (1.0_wp,0.0_wp)*Ey)**2.0_wp)/(abs(Ex + (1.0_wp,0.0_wp)*Ey)**2.0_wp + abs(Ex - (1.0_wp,0.0_wp)*Ey)**2.0_wp)
+   end function ellipticity
+   
    subroutine phase_unwrap_1d(xw)
         real, intent(inout), allocatable :: xw(:)
         real, allocatable :: xu(:)

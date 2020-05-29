@@ -18,12 +18,12 @@ Module Swapper
     type(Fields) :: inc_field
     
     abstract interface
-        subroutine fun_temp(f, larray, inc_field, theta, xi, parameters)
+        subroutine fun_temp(f, larray, inc_field, theta_in, xi_in, parameters)
             use Sim_parameters, only : wp
             use Fields_Class
             use Layer_Class
             real(wp), intent(in) :: f
-            real(wp), intent(in), optional ::  theta, xi
+            real(wp), intent(in), optional ::  theta_in, xi_in
             type(Layer), allocatable, intent(inout) :: larray(:)
             type(Fields), intent(inout) :: inc_field
             real(wp), intent(in), optional, dimension(:) :: parameters
@@ -50,7 +50,7 @@ Module Swapper
         integer, intent(in), optional :: savefig_flag
         
         allocate(freq_array(n_points))
-        allocate(data_array(3,n_points))
+        allocate(data_array(2,n_points))
         allocate(angle_array(2,n_points))
         
         if (present(output) .and. (.NOT. allocated(output))) then
@@ -97,9 +97,8 @@ Module Swapper
             
             ! save data for plotting
             angle_array(1,j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1))) / PI * 180.0
-            data_array(1,j) = abs(tx_ref(2,1,1))**2.0 +  abs(tx_ref(2,2,1))**2.0
-            data_array(2,j) = abs(tx_ref(2,1,1))**2.0 
-            data_array(3,j) = abs(tx_ref(2,2,1))**2.0
+            data_array(1,j) = (abs(tx_ref(2,1,1))**2.0 +  abs(tx_ref(2,2,1))**2.0)**0.5
+            data_array(2,j) = ellipticity(tx_ref(2,1,1),tx_ref(2,2,1))
             
             ! print *, 'Freq: ', freq_cur/1.0E12_wp, ' THz'
             ! print *, 'Tx_Faraday_rot_angle: ', angle_array(j) , ' Degree'
@@ -121,14 +120,15 @@ Module Swapper
         
         !call phase_unwrap_1d(angle_array_wrap)
         
-        angle_array(2,:) = (data_array(1,:)**0.5) * angle_array(1,:)
+        angle_array(2,:) = data_array(1,:) * angle_array(1,:)
 
         print *, 'FOM_BEST: ', maxval(angle_array(2,:))
+        print *, 'Rot_Angle_BEST: ', maxval(angle_array(1,:))
         
         ! call plotting subroutine
         if (present(savefig_flag) .and. (savefig_flag .EQ. 1) ) then 
-            call plot_1d(freq_array, data_array,  x_label = 'Freq(THz)', y_label = 'Amp (A.U.) ', title = 'Ref Coeff Plot', dev='ref_coeff.ps/PS', color = (/1,2,2/), style = (/1,2,3/))
-            call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Kerr Rotation Angle & FOM', dev='Kerr_rot.ps/PS', style_flag = 1, color_flag = 1)
+            call plot_1d(freq_array, data_array,  x_label = 'Freq(THz)', y_label = 'Amp (A.U.) ', title = 'Ref Coeff Plot', dev='ref_coeff.ps/PS', color = (/1,2,2/), style = (/1,2,3/),legend = (/'Reflectance','Ellipticity'/))
+            call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Kerr Rotation Angle & FOM', dev='Kerr_rot.ps/PS', style_flag = 1, color_flag = 1, legend = (/'Kerr Rot Angle','FOM'/))
             print*, 'Saved to Kerr_rot.ps'
         else
             call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Kerr Rotation Angle & FOM', dev='/WZ', style_flag = 1, color_flag = 1)
@@ -140,25 +140,26 @@ Module Swapper
     
         deallocate(freq_array)
         deallocate(data_array)
-        
+        deallocate(angle_array)
     end subroutine freq_swap
     
-    subroutine theta_swap(fun,freq,theta_start,theta_end,n_points,file_name)
+    subroutine theta_swap(fun,freq,theta_start,theta_end,n_points)
         use Plot_Pgplot
+        use Sim_parameters, only : pec_flag
         implicit none
         real(wp), intent(in) :: theta_start, theta_end, freq
         integer, intent(in) :: n_points
         procedure (fun_temp), pointer :: fun
         real(wp) :: theta_cur, theta_step
         complex(wp), dimension(2,2,2) :: tx_ref
-        character(len=*), intent(in) :: file_name
         integer :: i, j
         logical :: file_exists
         type(Fields), allocatable :: fields_layer(:)
-        real, allocatable :: theta_array(:), data_array(:,:)
+        real, allocatable :: theta_array(:), angle_array(:,:), data_array(:,:)
         
         allocate(theta_array(n_points))
-        allocate(data_array(3,n_points))
+        allocate(angle_array(2,n_points))
+        allocate(data_array(2,n_points))
         
         if (n_points .EQ. 1) then
             theta_step = 0.0_wp
@@ -171,19 +172,26 @@ Module Swapper
             theta_cur = real(j-1,wp) * theta_step + theta_start
             
             ! assume xi is 0
-            call fun(freq, layers, inc_field,theta_cur, 0.0_wp )
+            call fun(freq, layers, inc_field,theta_in = theta_cur,xi_in = 0.0_wp )
                         
             call compute_S_matrix(layers,S_Matrices)
             
-            ! obtain reflection coeff
-            tx_ref = trans_ref_coeff_freespace(S_Matrices)
+            if (pec_flag .EQ. 1) then
+                ! obtain reflection coeff of PEC backed
+                tx_ref = trans_ref_coeff_pec(S_Matrices,layers(size(layers))%P_n)
+            else
+                 ! obtain reflection coeff of free space
+                tx_ref = trans_ref_coeff_freespace(S_Matrices)
+            end if
             
             theta_array(j) = real(theta_cur) 
-            !angle_array(j) = real(ellipse_angle(tx_ref(1,1,1),tx_ref(1,2,1)))
-            data_array(1,j) = real(ABS(tx_ref(2,1,1))**2.0_wp)
-            data_array(2,j) = real(ABS(tx_ref(1,1,1))**2.0_wp)
-            data_array(3,j) = real( 1.0 - abs(tx_ref(1,1,1))**2.0_wp - abs(tx_ref(2,1,1))**2.0_wp)
             
+            angle_array(1,j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1))) / PI * 180.0
+            data_array(1,j) = (abs(tx_ref(2,1,1))**2.0 + abs(tx_ref(2,2,1))**2.0)**0.5
+            angle_array(2,j) = data_array(1,j) * angle_array(1,j)
+            data_array(2,j) = ellipticity(tx_ref(2,1,1),tx_ref(2,2,1))
+            !print *, 'ex: ', abs(tx_ref(2,1,1))**2.0
+            !print *, 'ey: ', abs(tx_ref(2,2,1)* cos(theta_cur/pi*180))**2.0 
             !print *, 'Freq: ', freq_cur/1.0E12_wp, 'THz'
             !print *, 'Tx_Faraday_rot_angle: ', angle_array(j) / PI * 180.0, ' Degree'
             
@@ -202,10 +210,12 @@ Module Swapper
         end do
         
         ! call plotting subroutine
-        call plot_1d(theta_array, data_array, x_label = 'theta (degrees)',y_label = '',  dev = '/PS')
+        call plot_1d(theta_array, angle_array, x_label = 'theta (degrees)',y_label = 'Angle (Degrees)',  dev = 'theta_plot.ps/PS',color_flag = 1, style_flag = 1,legend=(/'Kerr Rot Angle','FOM'/))
+        call plot_1d(theta_array, data_array,  x_label = 'theta (degrees)', y_label = 'Amp (A.U.) ', title = 'Ref Coeff Plot', dev='theta_ref_coeff.ps/PS', color = (/1,2,2/), style = (/1,2,3/),legend = (/'Reflectance','Ellipticity'/))
         
         deallocate(theta_array)
         deallocate(data_array)
+        deallocate(angle_array)
     end subroutine theta_swap
     
     ! obtain fields based on freq, fun stands for the function pointer of model's configuration
@@ -226,13 +236,12 @@ Module Swapper
         real(wp) :: z_extension
         real, allocatable :: z_array(:), field_array(:,:)
         integer, intent(in), optional :: savefig_flag
-        
         ! layer's field amplitude
         Type(Fields), allocatable :: fields_amp_layer(:)
         
         ! plotting data array
         allocate(z_array(n_points))
-        allocate(field_array(2,n_points))
+        allocate(field_array(1,n_points))
         
         ! load model paramters
         call fun(freq, layers, inc_field)
@@ -260,11 +269,12 @@ Module Swapper
         if (totol_z .EQ. 0.0_wp)  then
             z_extension = lambda_0
         else
-            z_extension = totol_z / 4.0_wp
+            z_extension = lambda_0 / 4.0_wp
         end if
         
         ! if pec backed, then 
         if (pec_flag .EQ. 1) then
+            ! do not plot pec field
             totol_z = totol_z + z_extension
         else 
             totol_z = totol_z + 2.0_wp * z_extension
@@ -308,15 +318,16 @@ Module Swapper
             ! save the E field
             z_array(i) = REAL(current_z)
             field_array(1,i) = (real(E_field(1)))
-            field_array(2,i) = (real(E_field(2)))
+            !field_array(2,i) = (real(E_field(2)))
             
             current_z = current_z + dz
             layer_z = layer_z + dz
         end do
-        
+
         ! call plotting subroutine
         if (present(savefig_flag) .and. (savefig_flag .eq. 1)) then
             call plot_1d(z_array,field_array, x_label = 'z(m)', y_label = 'E_Field(V/m)', title = 'E Fields Plot', style_flag = 1,dev='e_fields.ps/PS')
+            print*, 'E_field fig saved'
         else
             call plot_1d(z_array,field_array, x_label = 'z(m)', y_label = 'E_Field(V/m)', title = 'E Fields Plot', style_flag = 1,dev='/WZ')
         end if
@@ -350,10 +361,17 @@ Module Swapper
         end if
         
         if (pec_flag .EQ. 1) then
+            ! pec back, update the reflected wave on the last layer
             tx_ref = trans_ref_coeff_pec(S_matrices,layers(size(layers))%P_n)
+            ! calculate the amplitude of last layer
+            fields_amp_layer(n_S_matrices+1)%Field_1 = MATMUL(tx_ref(1,:,:),inc_fields%Field_1)
+            fields_amp_layer(n_S_matrices+1)%Field_2 = MATMUL(-layers(size(layers))%P_n, fields_amp_layer(n_S_matrices+1)%Field_1)
         else
-            ! calculate last layer, assume free space and no inc field from the last layer
+            ! calculate last layer, free space and no inc field from the last layer
             tx_ref = trans_ref_coeff_freespace(S_matrices)
+            ! calculate the amplitude of last layer
+            fields_amp_layer(n_S_matrices+1)%Field_1 = MATMUL(tx_ref(1,:,:),inc_fields%Field_1)
+            fields_amp_layer(n_S_matrices+1)%Field_2 = inc_fields%Field_2
         end if
         
         
@@ -367,8 +385,8 @@ Module Swapper
         do n = 1, n_S_matrices-1
             S_matrices_Cascaded_1_n = S_Matrices_Cascade(S_matrices,1,n)
             S_matrices_Cascaded_n_N = S_Matrices_Cascade(S_matrices,n+1,n_S_matrices)
-            field_forward = MATMUL((unit_matrix - MATMUL( S_matrices_Cascaded_1_n%beta_n , S_matrices_Cascaded_n_N%alpha_n ))**-1 , MATMUL( S_matrices_Cascaded_1_n%delta_n,inc_fields%Field_1) )
-            field_backward = MATMUL((unit_matrix - MATMUL( S_matrices_Cascaded_n_N%alpha_n , S_matrices_Cascaded_1_n%beta_n ))**-1 , MATMUL( MATMUL ( S_matrices_Cascaded_n_N%alpha_n , S_matrices_Cascaded_1_n%delta_n), inc_fields%Field_1) )
+            field_forward = MATMUL((unit_matrix - MATMUL( S_matrices_Cascaded_1_n%beta_n , S_matrices_Cascaded_n_N%alpha_n ))**-1 , MATMUL( S_matrices_Cascaded_1_n%delta_n,inc_fields%Field_1) + MATMUL( MATMUL(S_matrices_Cascaded_1_n%beta_n,S_matrices_Cascaded_n_N%gamma_n),fields_amp_layer(n_S_matrices+1)%Field_2) )
+            field_backward = MATMUL((unit_matrix - MATMUL( S_matrices_Cascaded_n_N%alpha_n , S_matrices_Cascaded_1_n%beta_n ))**-1 , MATMUL( MATMUL ( S_matrices_Cascaded_n_N%alpha_n , S_matrices_Cascaded_1_n%delta_n), inc_fields%Field_1) + MATMUL( S_matrices_Cascaded_n_N%gamma_n, fields_amp_layer(n_S_matrices+1)%Field_2 ))
             fields_amp_layer( n + 1 ) = Fields(field_forward,field_backward)
             
             !print*, n + 1
@@ -376,8 +394,6 @@ Module Swapper
             !print*, 'v_backward: ', abs(fields_amp_layer(n+1)%Field_2)
         end do
         
-        fields_amp_layer(n_S_matrices+1)%Field_1 = MATMUL(tx_ref(1,:,:),inc_fields%Field_1)
-        fields_amp_layer(n_S_matrices+1)%Field_2 = inc_fields%Field_2
         !print*, n+1
         !print*, 'v_forward: ', abs(fields_amp_layer(n_S_matrices+1)%Field_1)
         !print*, 'v_backward: ', abs(fields_amp_layer(n_S_matrices+1)%Field_2)

@@ -22,4 +22,5 @@
         sigma_d = (0.0_wp,-1.0_wp) * (kbt * e)  / ( PI * (hBar ** 2.0_wp) * (omega + (0.0_wp,-1.0_wp)/tau ) ) * ( muc / kbt  + 2.0_wp * log( exp( - muc / kbt ) + 1.0_wp ))
     end function graphene_Drude_sig
     
+    
 end module Graphene_Drude

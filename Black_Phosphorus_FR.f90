@@ -56,7 +56,7 @@ module Black_Phosphorus_FR
         bp_sigma_mat(2,1) = sigyx
         bp_sigma_mat(2,2) = sigyy
         
-        is_bp_1 = 0
+        is_bp_1 = 1
         ! first layer is bp and incoming media air
         if (is_bp_1 .EQ. 1) then 
             layers(1)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), bp_sigma_mat(1,1), bp_sigma_mat(2,2), bp_sigma_mat(1,2), bp_sigma_mat(2,1), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
