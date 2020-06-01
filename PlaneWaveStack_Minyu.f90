@@ -25,6 +25,9 @@ Program PlaneWaveStack_Minyu
     use Swapper
     use Stacked_Graphene_FR
     use GrapheneSig
+    use data_global
+    use graphene
+    use Plot_Pgplot
     implicit none    
     
     integer :: use_saved_config
@@ -41,15 +44,31 @@ Program PlaneWaveStack_Minyu
     use_saved_config = 1
         
     if (use_saved_config .EQ. 1) then
+        counter = 1
+        allocate(data_1(5001))
+        allocate(data_2(6,5001))
+        allocate(data_3(6,5001))
         ! assign config to swapper                     
         fun_p => stack_graphene_fr_config
         ! call compute_inter_thickness(1e12_wp)
+        b0 = 0.5
         ! swap freq
-        call freq_swap(fun_p,1.0e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 1)
+        call freq_swap(fun_p,0.01e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 0)
+        ! swap freq 2 
+        b0 = 2.5
+        call freq_swap(fun_p,0.01e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 0)
+        ! swap freq 3 
+        b0 = 5.0
+        call freq_swap(fun_p,0.01e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 0)
+        
+        ! plot result
+        call plot_1d(data_1,data_2, x_label = '\(2156) (THz)', y_label = 'Amplitude (A.U.)', title = '', color = (/1,1,2,2,3,3/),style=(/1,2,1,2,1,2/),dev = 'kerr_angle_b0.ps/CPS',legend=(/'Kerr Angle, 0.5T','FOM, 0.5T','Kerr Angle, 2.5T','FOM, 2.5T','Kerr Angle, 5.0T','FOM, 5.0T'/))
+        call plot_1d(data_1,data_3, x_label = '\(2156) (THz)', y_label = 'Amplitude (A.U.)', title = '', color = (/1,1,2,2,3,3/),style=(/1,2,1,2,1,2/),dev = 'ref_b0.ps/CPS',legend=(/'Reflectance, 0.5T','Ellipticity, 0.5T','Reflectance, 2.5T','Ellipticity, 2.5T','Reflectance, 5.0T','Ellipticity, 5.0T'/))
+        
         ! swap theta
-        call theta_swap(fun_p,2e12_wp,0.0_wp, 89.999_wp, 11)
+        call theta_swap(fun_p,2e12_wp,0.0_wp, 89.999_wp, 1001)
         ! plot sigma
-        call plot_graphene_sigma(0.1e12,5e12,1001,0.5,savefig_flag = 1)
+        call plot_graphene_sigma_mb0(0.1e12,5e12,1001,(/0.0,0.5,2.5,5.0/))
         ! plot field of a single freq
         call fields_computation(fun_p,2E12_wp,1001,savefig_flag = 1)
     else
@@ -180,4 +199,3 @@ Program PlaneWaveStack_Minyu
     
     
 end program PlaneWaveStack_Minyu
-    

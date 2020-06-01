@@ -50,6 +50,10 @@
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
 		<Filter Name="black_phosphorus">
 		<File RelativePath=".\Black_Phosphorus_Sigma.f90"/></Filter>
+		<Filter Name="class">
+		<File RelativePath=".\Fields_Class.f90"/>
+		<File RelativePath=".\Layer_Class.f90"/>
+		<File RelativePath=".\S_Matrix_Class.f90"/></Filter>
 		<Filter Name="configuration">
 		<File RelativePath=".\Black_Phosphorus.f90"/>
 		<File RelativePath=".\Black_Phosphorus_FR.f90"/>
@@ -68,12 +72,9 @@
 		<File RelativePath=".\Graphene_Drude.f90"/>
 		<File RelativePath=".\Graphene_Ribbons.f90"/>
 		<File RelativePath=".\graphen_sig\GrapheneSig.f90"/></Filter>
-		<Filter Name="class">
-		<File RelativePath=".\Fields_Class.f90"/>
-		<File RelativePath=".\Layer_Class.f90"/>
-		<File RelativePath=".\S_Matrix_Class.f90"/></Filter>
 		<Filter Name="plotting">
 		<File RelativePath=".\Plot_Pgplot.f90"/></Filter>
+		<File RelativePath=".\data_global.f90"/>
 		<File RelativePath=".\Math.f90"/>
 		<File RelativePath=".\PlaneWaveStack_Minyu.f90"/>
 		<File RelativePath=".\Sim_parameters.f90"/>

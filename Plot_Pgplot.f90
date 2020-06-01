@@ -34,7 +34,7 @@ Module Plot_Pgplot
         ! legend
         character(len=*), intent(in), optional :: legend(:)
         ! legend length, 0 - 1
-        real :: legend_length, legend_gap, legend_x_offset, legend_y_offset
+        real :: legend_length, legend_gap, legend_x_offset, legend_y_offset, legend_box_gap, legend_box_width
         
         n_p = size(y,2)
         n_l = size(y,1)
@@ -76,8 +76,11 @@ Module Plot_Pgplot
             call PGSCH(font_size)
         else
             ! font size
-            call PGSCH(1.1)
+            call PGSCH(1.2)
         end if
+        
+        ! line width of frame and label
+        call pgslw(3)
         
         ! start a plot, xlim, ylim, box style, and x y scale
         CALL pgenv(xmin,xmax,ymin,ymax,0,1)
@@ -130,8 +133,11 @@ Module Plot_Pgplot
         legend_length = 0.1
         legend_gap = 0.05
         legend_x_offset = 0.7
-        legend_y_offset = 0.93
-        legend_yaxis_length = 39.0
+        legend_y_offset = 0.92
+        legend_yaxis_length = 38.0
+        legend_box_width = 2.1
+        legend_box_gap = 0.02
+        
         
         do i = 1, n_l
             ! set line width
@@ -149,7 +155,7 @@ Module Plot_Pgplot
             ! legend
             if (present(legend)) then
                 call PGSAH (1, 0.0, 2.0)
-                call PGLINE(2,(/abs(xmax-xmin)*legend_x_offset+xmin,abs(xmax-xmin)*legend_x_offset + abs(xmax-xmin)*legend_length+xmin/),(/abs(ymax-ymin) * legend_y_offset - real(i-1)* abs(ymax-ymin) * legend_gap + ymin, abs(ymax-ymin) * legend_y_offset - real(i-1)* abs(ymax-ymin) * legend_gap + ymin/))
+                call PGLINE(2,(/abs(xmax-xmin) * legend_x_offset+xmin, abs(xmax-xmin) * legend_x_offset + abs(xmax-xmin) * legend_length + xmin/), (/abs(ymax-ymin) * legend_y_offset - real(i-1)* abs(ymax-ymin) * legend_gap + ymin, abs(ymax-ymin) * legend_y_offset - real(i-1)* abs(ymax-ymin) * legend_gap + ymin/))
                 !call pgarro(abs(xmax-xmin)*7.5/10.0 , abs(ymax-ymin)/2.0 * 8.5/10.0 - real(i-1)* abs(ymax-ymin) * 1.0/10.0 * legend_gap, abs(xmax-xmin)*7.5/10.0 + abs(xmax-xmin)*1.0/10.0*legend_length, abs(ymax-ymin)/2.0 * 8.5/10.0 - real(i-1)* abs(ymax-ymin) * 1.0/10.0 * legend_gap);
                 
                 ! legend line width
@@ -158,11 +164,25 @@ Module Plot_Pgplot
                 call PGSCH(0.8)
                 ! legend font style
                 call pgscf(3);
-                call PGMTXT('B',-(legend_yaxis_length * legend_y_offset) + real(i-1) * legend_gap * legend_yaxis_length , legend_x_offset + legend_length + 0.01,0.0,trim(legend(i)))
+                call PGMTXT('B',- (legend_yaxis_length * legend_y_offset) + real(i-1) * legend_gap * legend_yaxis_length , legend_x_offset + legend_length + 0.01,0.0,trim(legend(i)))
+            
             end if
             
         end do
         
+        ! add legend bounding box
+        if (present(legend)) then
+            ! box line width
+            call pgslw(2)
+            ! box line color, filling, style
+            call PGSLS(1)
+            call PGSFS(2)
+            call PGSCI(1)
+
+            ! draw box
+            call PGRECT(legend_x_offset * abs(xmax-xmin) + xmin - legend_box_gap * abs(xmax-xmin), abs(xmax-xmin) * legend_x_offset + xmin + legend_box_gap * abs(xmax-xmin) + abs(xmax-xmin) * legend_length * legend_box_width, abs(ymax-ymin) * legend_y_offset + ymin + abs(ymax-ymin) * legend_box_gap * 1.5, abs(ymax-ymin) * legend_y_offset - (size(legend)-1.0) * abs(ymax-ymin) * legend_gap + ymin - abs(ymax-ymin) * legend_box_gap)
+        end if
+            
         call pgend
         deallocate(style_array)
         deallocate(color_array)

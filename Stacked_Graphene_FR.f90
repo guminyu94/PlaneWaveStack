@@ -11,7 +11,7 @@ module Stacked_Graphene_FR
     complex(wp), allocatable :: eps_array(:)
     real(wp), allocatable :: thickness_array(:)
     integer, allocatable :: g_array(:)
-    integer :: p_count = 5, is_g_1, is_g_2
+    integer :: p_count = 0, is_g_1, is_g_2
     real(wp) :: inter_thickness, bottom_thickness
     complex(wp) :: inter_mat
     
@@ -27,19 +27,19 @@ module Stacked_Graphene_FR
         complex(wp), dimension(2,2,2) :: txref_coeff_pc
         
         inter_mat = si_e
-        bottom_thickness = 9.6e-6_wp
+        bottom_thickness = 12.2e-6_wp
+        ! bottom_thickness = 9.6e-6_wp
         
         if (.NOT. allocated(eps_array)) then
             allocate(eps_array(n_mat))
             allocate(g_array(n_mat))
             
             eps_array(1) = si_e
-            !eps_array(2) = si_e
-            !eps_array(2) = polymethylpentene_e
+            ! eps_array(2) = si_e
+            ! eps_array(2) = polymethylpentene_e
             
             call pc_thickness_config(eps_array,thickness_array,2.0e12_wp,4.0_wp*(real(p_count,wp)+1.0_wp)) 
-            print*,'dieletrics thickness: ', thickness_array(1)
-            !thickness_array(1) = 6.4e-6_wp/2.0_wp/2.0_wp
+            !print*,'dieletrics thickness: ', thickness_array(1)
             
             g_array(1) = 1
             !g_array(2) = 0
@@ -71,11 +71,12 @@ module Stacked_Graphene_FR
         inc_field  = Fields((1.0_wp,0.0_wp)*cos(theta/pi*180_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp))
         
         ! these graphene paramters are imported
-        b0 = 0.5
+        !b0 = 2.5
         call sigmas(real(freq),sig_d,sig_h,n_d,n_h)
         
         sigxx = CMPLX(sig_d,wp)
         sigyy = CMPLX(sig_d,wp)
+
         sigyx = (CMPLX(sig_h,wp))
         sigxy = (CMPLX(-sig_h,wp))
         
@@ -107,12 +108,13 @@ module Stacked_Graphene_FR
         end if
         
         layers(p_count*n_mat+2)=Layer(si_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), bottom_thickness)
-        !layers(p_count*n_mat+3)=Layer((1.0_wp,-1e12_wp), (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
+        ! layers(p_count*n_mat+3)=Layer((1.0_wp,-1e12_wp), (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
         ! if pec backed
         pec_flag = 1
         
-        !txref_coeff_pc = peak_txref_coeff(layers,3,size(layers),pec_flag,0)
-        !print*, 'PC REF: ',txref_coeff_pc(2,1,1),atan2(aimag(txref_coeff_pc(2,1,1)),real(txref_coeff_pc(2,1,1)))/pi*180.0,abs(txref_coeff_pc(2,1,1))
+        ! txref_coeff_pc = peak_txref_coeff(layers,3,size(layers),pec_flag,0
+        
+        
     end subroutine stack_graphene_fr_config
     
     ! compute the thickness of the substrate
@@ -135,6 +137,6 @@ module Stacked_Graphene_FR
         print*, 'dieletrics thickness: ', inter_thickness
         deallocate(layers_temp)
         
-    end subroutine
+    end subroutine compute_inter_thickness
     
 end module Stacked_Graphene_FR

@@ -2,7 +2,7 @@ module GrapheneSig
 use Sim_parameters, only : wp
 implicit none
 private
-public :: sigmas, plot_graphene_sigma
+public :: sigmas, plot_graphene_sigma, plot_graphene_sigma_mb0
 
 ! graphene computation
 complex, public :: sig_d, sig_h
@@ -300,6 +300,57 @@ end subroutine SigTensor
         end if
         
     end subroutine plot_graphene_sigma
+    
+    subroutine plot_graphene_sigma_mb0(freq_start,freq_end,n_p,b_0)
+        use Plot_Pgplot
+        use graphene, only : b0, muc
+        real, intent(in) :: freq_start, freq_end
+        ! carrier density (adjustable)
+        integer, intent(in) :: n_p        
+        real, intent(in) :: b_0(:)
+        real :: freq_cur, freq_step
+        real, allocatable :: freq_array(:)
+        real, allocatable, dimension(:,:) :: sigma_d_array, sigma_h_array
+        integer :: i, j
+
+        
+        allocate(freq_array(n_p))
+        allocate(sigma_d_array(2*size(b_0),n_p))
+        allocate(sigma_h_array(2*size(b_0),n_p))
+        
+        if (n_p .EQ. 1) then
+            freq_step = 0.0_wp
+        else
+            freq_step = (freq_end-freq_start)/(n_p-1)
+        end if
+        
+        
+        do j = 1, size(b_0)
+        
+            !update b0
+            b0 = b_0(j)
+
+            do i = 1,n_p
+                freq_cur = freq_start + freq_step * i
+                if (j .eq. 1) then
+                    freq_array(i) = real(freq_cur / 1E12)
+                end if
+                
+                call sigmas(real(freq_cur),sig_d,sig_h,n_d,n_h)
+                sigma_d_array((j-1)*2+1,i) = real(sig_d)
+                sigma_d_array((j-1)*2+2,i) = AIMAG(sig_d)
+                sigma_h_array((j-1)*2+1,i) = real(sig_h)
+                sigma_h_array((j-1)*2+2,i) = AIMAG(sig_h)
+            end do
+        end do
+        
+        ! plot sigma d
+        call plot_1d(freq_array,sigma_d_array, x_label = '\(2156) (THz)', y_label = '\(2526) (Ohm)', title = '\(2144)\d\fId\u', color = (/1,1,2,2,3,3,4,4/),style=(/1,2,1,2,1,2,1,2,1,2/),dev = 'graphene_d_b0.ps/CPS',legend=(/'real, 0.0T','imag, 0.0T','real, 0.5T','imag, 0.5T','real, 2.5T','imag, 2.5T','real, 5.0T','imag, 5.0T'/))
+        ! plot sigma h
+        call plot_1d(freq_array,sigma_h_array, x_label = '\(2156) (THz)', y_label = '\(2526) (Ohm)', title = '\(2144)\d\fIh\u', color = (/1,1,2,2,3,3,4,4/),style=(/1,2,1,2,1,2,1,2,1,2/),dev = 'graphene_h_b0.ps/CPS',legend=(/'real, 0.0T','imag, 0.0T','real, 0.5T','imag, 0.5T','real, 2.5T','imag, 2.5T','real, 5.0T','imag, 5.0T'/))
+        
+    end subroutine plot_graphene_sigma_mb0
+        
 end module GrapheneSig
 
 

@@ -8,7 +8,6 @@
     
     module graphene
     
-    
     use Constants, only : kb, hbar, e
     
     implicit none
@@ -25,6 +24,6 @@
 
     real, parameter :: kbt = kB * tK
     
-    real :: b0 = 3.0
+    real :: b0 = 5.0
     
 end module graphene

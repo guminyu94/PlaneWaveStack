@@ -35,6 +35,7 @@ Module Swapper
     subroutine freq_swap(fun,freq_start,freq_end,n_points,file_name,output,savefig_flag)
         use Plot_Pgplot
         use Sim_parameters, only : pec_flag
+        use data_global
         implicit none
         real(wp), intent(in) :: freq_start, freq_end
         integer, intent(in) :: n_points
@@ -49,9 +50,15 @@ Module Swapper
         real(wp), optional, allocatable, intent(inout) :: output(:)
         integer, intent(in), optional :: savefig_flag
         
-        allocate(freq_array(n_points))
-        allocate(data_array(2,n_points))
-        allocate(angle_array(2,n_points))
+        if (.not. allocated(freq_array)) then
+            allocate(freq_array(n_points))
+        end if 
+        if (.not. allocated(data_array)) then
+            allocate(data_array(2,n_points))
+        end if
+        if (.not. allocated(angle_array)) then
+            allocate(angle_array(2,n_points))
+        end if
         
         if (present(output) .and. (.NOT. allocated(output))) then
             allocate(output(2))
@@ -99,6 +106,7 @@ Module Swapper
             angle_array(1,j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1))) / PI * 180.0
             data_array(1,j) = (abs(tx_ref(2,1,1))**2.0 +  abs(tx_ref(2,2,1))**2.0)**0.5
             data_array(2,j) = ellipticity(tx_ref(2,1,1),tx_ref(2,2,1))
+            angle_array(2,j) = data_array(1,j) * abs(angle_array(1,j)) * data_array(2,j)
             
             ! print *, 'Freq: ', freq_cur/1.0E12_wp, ' THz'
             ! print *, 'Tx_Faraday_rot_angle: ', angle_array(j) , ' Degree'
@@ -118,19 +126,28 @@ Module Swapper
             
         end do
         
-        !call phase_unwrap_1d(angle_array_wrap)
+        ! call phase_unwrap_1d(angle_array_wrap)
+        if (counter .eq. 1) then
+            data_1 = freq_array
+        end if
         
-        angle_array(2,:) = data_array(1,:) * angle_array(1,:)
-
-        print *, 'FOM_BEST: ', maxval(angle_array(2,:))
-        print *, 'Rot_Angle_BEST: ', maxval(angle_array(1,:))
+        ! save the data to global array
+        data_2((counter-1)*2+1,:) = angle_array(1,:)
+        data_2((counter-1)*2+2,:) = angle_array(2,:)
+        data_3((counter-1)*2+1,:) = data_array(1,:)
+        data_3((counter-1)*2+2,:) = data_array(2,:)
+        counter = counter + 1
+        
+        !print *, 'FOM_BEST: ', maxval(angle_array(2,:))
+        !print *, 'Rot_Angle_BEST: ', maxval(angle_array(1,:))
         
         ! call plotting subroutine
         if (present(savefig_flag) .and. (savefig_flag .EQ. 1) ) then 
             call plot_1d(freq_array, data_array,  x_label = 'Freq(THz)', y_label = 'Amp (A.U.) ', title = 'Ref Coeff Plot', dev='ref_coeff.ps/PS', color = (/1,2,2/), style = (/1,2,3/),legend = (/'Reflectance','Ellipticity'/))
             call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Kerr Rotation Angle & FOM', dev='Kerr_rot.ps/PS', style_flag = 1, color_flag = 1, legend = (/'Kerr Rot Angle','FOM'/))
             print*, 'Saved to Kerr_rot.ps'
-        else
+            print*, 'Saved to ref_coeff.ps'
+        else if (present(savefig_flag) .and. (savefig_flag .EQ. 2)) then
             call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Kerr Rotation Angle & FOM', dev='/WZ', style_flag = 1, color_flag = 1)
         end if
             
@@ -241,7 +258,7 @@ Module Swapper
         
         ! plotting data array
         allocate(z_array(n_points))
-        allocate(field_array(1,n_points))
+        allocate(field_array(2,n_points))
         
         ! load model paramters
         call fun(freq, layers, inc_field)
@@ -269,7 +286,7 @@ Module Swapper
         if (totol_z .EQ. 0.0_wp)  then
             z_extension = lambda_0
         else
-            z_extension = lambda_0 / 4.0_wp
+            z_extension = totol_z / 4.0_wp
         end if
         
         ! if pec backed, then 
@@ -299,6 +316,7 @@ Module Swapper
             Pn_forward(1,2) = (0.0_wp,0.0_wp)
             Pn_forward(2,1) = (0.0_wp,0.0_wp)
             Pn_forward(2,2) = exp(-1.0_wp*(0.0_wp,1.0_wp)*layers(current_layer)%kz_h*(layer_z))
+            
             Pn_backward(1,1) = exp((0.0_wp,1.0_wp)*layers(current_layer)%kz_e*(layer_z-layers(current_layer)%d))
             Pn_backward(2,1) = (0.0_wp,0.0_wp)
             Pn_backward(1,2) = (0.0_wp,0.0_wp)
@@ -318,7 +336,7 @@ Module Swapper
             ! save the E field
             z_array(i) = REAL(current_z)
             field_array(1,i) = (real(E_field(1)))
-            !field_array(2,i) = (real(E_field(2)))
+            field_array(2,i) = (real(E_field(2)))
             
             current_z = current_z + dz
             layer_z = layer_z + dz
@@ -326,7 +344,7 @@ Module Swapper
 
         ! call plotting subroutine
         if (present(savefig_flag) .and. (savefig_flag .eq. 1)) then
-            call plot_1d(z_array,field_array, x_label = 'z(m)', y_label = 'E_Field(V/m)', title = 'E Fields Plot', style_flag = 1,dev='e_fields.ps/PS')
+            call plot_1d(z_array,field_array, x_label = 'z(m)', y_label = 'E_Field(V/m)', title = 'E Fields Plot', style_flag = 1,color_flag = 1, dev='e_fields.ps/CPS')
             print*, 'E_field fig saved'
         else
             call plot_1d(z_array,field_array, x_label = 'z(m)', y_label = 'E_Field(V/m)', title = 'E Fields Plot', style_flag = 1,dev='/WZ')
