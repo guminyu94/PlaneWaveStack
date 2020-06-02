@@ -11,7 +11,7 @@ module Stacked_Graphene_FR
     complex(wp), allocatable :: eps_array(:)
     real(wp), allocatable :: thickness_array(:)
     integer, allocatable :: g_array(:)
-    integer :: p_count = 2, is_g_1, is_g_2
+    integer :: p_count = 0, is_g_1, is_g_2
     real(wp) :: inter_thickness, bottom_thickness
     complex(wp) :: inter_mat
     
@@ -27,8 +27,8 @@ module Stacked_Graphene_FR
         complex(wp), dimension(2,2,2) :: txref_coeff_pc
         
         inter_mat = si_e
-        !bottom_thickness = 12.0e-6_wp
-        bottom_thickness = 9.6e-6_wp
+        bottom_thickness = 12.0e-6_wp
+        !bottom_thickness = 9.6e-6_wp
         
         if (.NOT. allocated(eps_array)) then
             allocate(eps_array(n_mat))

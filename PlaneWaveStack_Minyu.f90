@@ -62,7 +62,7 @@ Program PlaneWaveStack_Minyu
         call freq_swap(fun_p,0.01e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 0)
         
         ! plot result
-        call plot_1d(data_1,data_2, x_label = '\(2156) (THz)', y_label = 'Amplitude (A.U.)', title = '', color = (/1,1,2,2,3,3/),style=(/1,2,1,2,1,2/),dev = 'kerr_angle_b0.ps/CPS',legend=(/'Kerr Angle, 0.5T','FOM, 0.5T','Kerr Angle, 2.5T','FOM, 2.5T','Kerr Angle, 5.0T','FOM, 5.0T'/))
+        call plot_1d(data_1,data_2, x_label = '\(2156) (THz)', y_label = 'Angle (Degrees)', title = '', color = (/1,1,2,2,3,3/),style=(/1,2,1,2,1,2/),dev = 'kerr_angle_b0.ps/CPS',legend=(/'Kerr Angle, 0.5T','FOM, 0.5T','Kerr Angle, 2.5T','FOM, 2.5T','Kerr Angle, 5.0T','FOM, 5.0T'/))
         call plot_1d(data_1,data_3, x_label = '\(2156) (THz)', y_label = 'Amplitude (A.U.)', title = '', color = (/1,1,2,2,3,3/),style=(/1,2,1,2,1,2/),dev = 'ref_b0.ps/CPS',legend=(/'Reflectance, 0.5T','Ellipticity, 0.5T','Reflectance, 2.5T','Ellipticity, 2.5T','Reflectance, 5.0T','Ellipticity, 5.0T'/))
         
         ! swap theta
