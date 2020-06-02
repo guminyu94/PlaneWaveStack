@@ -106,7 +106,6 @@ Module Swapper
             angle_array(1,j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1))) / PI * 180.0
             data_array(1,j) = (abs(tx_ref(2,1,1))**2.0 +  abs(tx_ref(2,2,1))**2.0)**0.5
             data_array(2,j) = ellipticity(tx_ref(2,1,1),tx_ref(2,2,1))
-            angle_array(2,j) = data_array(1,j) * abs(angle_array(1,j)) * data_array(2,j)
             
             ! print *, 'Freq: ', freq_cur/1.0E12_wp, ' THz'
             ! print *, 'Tx_Faraday_rot_angle: ', angle_array(j) , ' Degree'
@@ -126,7 +125,9 @@ Module Swapper
             
         end do
         
-        ! call phase_unwrap_1d(angle_array_wrap)
+        !call phase_unwrap_1d(angle_array,1,90.0)
+        angle_array(2,:) = data_array(1,:) * (angle_array(1,:)) * (data_array(2,:))
+       
         if (counter .eq. 1) then
             data_1 = freq_array
         end if
@@ -139,7 +140,9 @@ Module Swapper
         counter = counter + 1
         
         !print *, 'FOM_BEST: ', maxval(angle_array(2,:))
-        !print *, 'Rot_Angle_BEST: ', maxval(angle_array(1,:))
+        print *, 'Rot_Angle_BEST: ', angle_array(1,2001)
+        print *, 'Freq: ', freq_array(2001)
+        print *, 'Ref: ', data_array(1,2001)
         
         ! call plotting subroutine
         if (present(savefig_flag) .and. (savefig_flag .EQ. 1) ) then 

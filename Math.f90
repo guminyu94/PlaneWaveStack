@@ -135,27 +135,30 @@ Module Math
         complex(wp), intent(in) :: Ex, Ey
         complex(wp) :: rpp, rps
         real(wp) :: value
-        value = (abs(Ex + (1.0_wp,0.0_wp)*Ey)**2.0_wp - abs(Ex - (1.0_wp,0.0_wp)*Ey)**2.0_wp)/(abs(Ex + (1.0_wp,0.0_wp)*Ey)**2.0_wp + abs(Ex - (1.0_wp,0.0_wp)*Ey)**2.0_wp)
+        value = -1.0_wp * ( abs(Ex + (0.0_wp,1.0_wp)*Ey)**2.0_wp - abs(Ex - (0.0_wp,1.0_wp)*Ey)**2.0_wp ) / ( abs(Ex + (0.0_wp,1.0_wp)*Ey)**2.0_wp + abs(Ex - (0.0_wp,1.0_wp)*Ey)**2.0_wp )
    end function ellipticity
    
-   subroutine phase_unwrap_1d(xw)
-        real, intent(inout), allocatable :: xw(:)
+   subroutine phase_unwrap_1d(xw,row_index,threshold)
+        integer, intent(in) :: row_index
+        real, intent(inout), allocatable :: xw(:,:)
         real, allocatable :: xu(:)
         real :: difference
         integer :: i, n_x
-        n_x = size(xw)
+        real,intent(in) :: threshold
+        
+        n_x = size(xw,2)
         allocate(xu(n_x))
-        xu = xw
+        xu = xw(row_index,:)
         ! 1D Phase Unwrap
         do i = 2, n_x
-            difference = xw(i)-xw(i-1);
-            if (difference > PI) then
-                xu(i:n_x) = xu(i:n_x) - 2.0 * PI;
-            else if (difference < -PI) then
-                xu(i:n_x) = xu(i:n_x) + 2.0 * PI;
+            difference = xw(row_index,i)-xw(row_index,i-1);
+            if (difference > threshold/2.0) then
+                xu(i:n_x) = xu(i:n_x) - threshold * 2.0;
+            else if (difference < -threshold/2.0) then
+                xu(i:n_x) = xu(i:n_x) + threshold * 2.0;
             end if
         end do
-        xw = xu
+        xw(row_index,:) = xu(:)
         deallocate(xu)
    end subroutine phase_unwrap_1d
    
