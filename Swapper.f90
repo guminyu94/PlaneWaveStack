@@ -125,7 +125,8 @@ Module Swapper
             
         end do
         
-        call phase_unwrap_1d(angle_array,1,90.0)
+        ! phase unwrap
+        !call phase_unwrap_1d(angle_array,1,90.0)
         angle_array(2,:) = data_array(1,:) * (( (angle_array(1,:))**2.0 + (data_array(2,:) / PI * 180.0)**2.0  ) **0.5)
        
         if (counter .eq. 1) then

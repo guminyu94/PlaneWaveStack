@@ -54,23 +54,20 @@ Program PlaneWaveStack_Minyu
         
         
         ! swap freq
-        p_count = 0
-        bottom_thickness = 12e-6_wp
+        b0 = 0.5
         call freq_swap(fun_p,0.01e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 0)
         
         ! swap freq 2 
-        p_count = 2
-        bottom_thickness = 7.2e-6_wp
+        b0 = 2.5
         call freq_swap(fun_p,0.01e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 0)
         
         ! swap freq 3 
-        p_count = 4
-        bottom_thickness = 8.8e-6_wp
+        b0 = 5.0
         call freq_swap(fun_p,0.01e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 0)
         
         ! plot result
-        call plot_1d(data_1,data_2, x_label = '\(2156) (THz)', y_label = 'Angle (Degrees)', title = '', color = (/1,1,2,2,3,3/),style=(/1,2,1,2,1,2/),dev = 'kerr_angle_p.ps/CPS',legend=(/'Kerr Angle, p = 1','FOM,  p = 1','Kerr Angle,  p = 3','FOM, p = 3','Kerr Angle, p = 5','FOM, p = 5'/))
-        call plot_1d(data_1,data_3, x_label = '\(2156) (THz)', y_label = 'Amplitude (A.U.)', title = '', color = (/1,1,2,2,3,3/),style=(/1,2,1,2,1,2/),dev = 'ref_p.ps/CPS',legend=(/'Reflectance, p = 1','Ellipticity, p = 1','Reflectance, p = 3','Ellipticity, p = 3','Reflectance, p = 5','Ellipticity, p = 5'/))
+        call plot_1d(data_1,data_2, x_label = '\(2156) (THz)', y_label = 'Angle (Degrees)', title = '', color = (/1,1,2,2,3,3/),style=(/1,2,1,2,1,2/),dev = 'kerr_angle_B0.ps/CPS',legend=(/'Kerr Angle, B\d0\u = 0.5T','FOM, B\d0\u = 0.5','Kerr Angle, B\d0\u = 2.5T','FOM, B\d0\u = 2.5T','Kerr Angle, B\d0\u = 5.0T','FOM, B\d0\u = 5.0T'/))
+        call plot_1d(data_1,data_3, x_label = '\(2156) (THz)', y_label = 'Amplitude (A.U.)', title = '', color = (/1,1,2,2,3,3/),style=(/1,2,1,2,1,2/),dev = 'ref_B0.ps/CPS',legend=(/'Reflectance, B\d0\u = 0.5T','Ellipticity, B\d0\u = 0.5T','Reflectance, B\d0\u = 2.5T','Ellipticity, B\d0\u = 2.5T','Reflectance, B\d0\u = 5.0T','Ellipticity, B\d0\u = 5.0T'/))
         
         allocate(temp(2,6))
         allocate(p_temp(6))
@@ -78,7 +75,7 @@ Program PlaneWaveStack_Minyu
         temp(1,:) = (/15.278,27.166,40.795,61.287,74.944,104.258/)
         temp(2,:) = (/14.101,22.670,26.439,36.253,37.126,53.105/)
         
-        call plot_1d(p_temp,temp, x_label = 'p', y_label = 'Angle (Degrees)', title = '', color_flag = 1,style_flag = 1,dev = 'anglefom_p16.ps/CPS',legend=(/'Kerr Angle', 'FOM'/), dots_style = (/9,10/))
+        !call plot_1d(p_temp,temp, x_label = 'p', y_label = 'Angle (Degrees)', title = '', color_flag = 1,style_flag = 1,dev = 'anglefom_p16.ps/CPS',legend=(/'Kerr Angle', 'FOM'/), dots_style = (/9,10/))
         ! swap theta
         ! call theta_swap(fun_p,2e12_wp,0.0_wp, 89.999_wp, 1001)
         ! plot sigma

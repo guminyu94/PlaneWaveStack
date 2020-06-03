@@ -26,8 +26,9 @@ module Stacked_Graphene_FR
         real(wp), intent(in), optional, dimension(:) :: parameters
         complex(wp), dimension(2,2,2) :: txref_coeff_pc
         
+        p_count = 0
         inter_mat = si_e
-        !bottom_thickness = 12.0e-6_wp
+        bottom_thickness = 12.0e-6_wp
         !bottom_thickness = 9.6e-6_wp
         
         if (allocated(eps_array)) then
@@ -78,7 +79,7 @@ module Stacked_Graphene_FR
         inc_field  = Fields((1.0_wp,0.0_wp)*cos(theta/pi*180_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp))
         
         ! these graphene paramters are imported
-        b0 = 0.5
+        !b0 = 0.5
         call sigmas(real(freq),sig_d,sig_h,n_d,n_h)
         
         sigxx = CMPLX(sig_d,wp)
