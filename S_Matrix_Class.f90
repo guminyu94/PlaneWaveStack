@@ -85,6 +85,9 @@ Module S_Matrix_Class
         ! allocate the S_Matrix
         if (.NOT. allocated(S_Matrices)) then
             allocate(S_Matrices(size(layers)-1))
+        else
+            deallocate(S_Matrices)
+            allocate(S_Matrices(size(layers)-1))
         end if
         ! compute S matrix
         do i = 1, size(layers)-1

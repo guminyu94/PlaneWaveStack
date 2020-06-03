@@ -125,8 +125,8 @@ Module Swapper
             
         end do
         
-        !call phase_unwrap_1d(angle_array,1,90.0)
-        angle_array(2,:) = data_array(1,:) * (angle_array(1,:)) * (data_array(2,:))
+        call phase_unwrap_1d(angle_array,1,90.0)
+        angle_array(2,:) = data_array(1,:) * (( (angle_array(1,:))**2.0 + (data_array(2,:) / PI * 180.0)**2.0  ) **0.5)
        
         if (counter .eq. 1) then
             data_1 = freq_array
@@ -140,9 +140,9 @@ Module Swapper
         counter = counter + 1
         
         !print *, 'FOM_BEST: ', maxval(angle_array(2,:))
-        print *, 'Rot_Angle_BEST: ', angle_array(1,2001)
-        print *, 'Freq: ', freq_array(2001)
-        print *, 'Ref: ', data_array(1,2001)
+        
+        print *, 'Rot_Angle: ', angle_array(1,2001)
+        print *, 'FOM: ', angle_array(2,2001)
         
         ! call plotting subroutine
         if (present(savefig_flag) .and. (savefig_flag .EQ. 1) ) then 
@@ -208,8 +208,8 @@ Module Swapper
             
             angle_array(1,j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1))) / PI * 180.0
             data_array(1,j) = (abs(tx_ref(2,1,1))**2.0 + abs(tx_ref(2,2,1))**2.0)**0.5
-            angle_array(2,j) = data_array(1,j) * angle_array(1,j)
             data_array(2,j) = ellipticity(tx_ref(2,1,1),tx_ref(2,2,1))
+            angle_array(2,j) = data_array(1,j) * (angle_array(1,j) + data_array(2,j))
             !print *, 'ex: ', abs(tx_ref(2,1,1))**2.0
             !print *, 'ey: ', abs(tx_ref(2,2,1)* cos(theta_cur/pi*180))**2.0 
             !print *, 'Freq: ', freq_cur/1.0E12_wp, 'THz'
@@ -378,6 +378,9 @@ Module Swapper
         n_S_matrices = SIZEOF(S_matrices)/SIZEOF(S_matrices(1))
         
         if (.not. allocated(fields_amp_layer)) then
+            allocate(fields_amp_layer(n_layers))
+        else
+            deallocate(fields_amp_layer)
             allocate(fields_amp_layer(n_layers))
         end if
         

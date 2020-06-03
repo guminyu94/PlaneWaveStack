@@ -8,10 +8,11 @@
 Module Plot_Pgplot
     
     contains
-    subroutine plot_1d(x,y,x_label,y_label,title,dev,dots_x,dots_y, style, color, xrange, yrange, lw, style_flag, color_flag, font_size, font_style,legend)
+    subroutine plot_1d(x,y,x_label,y_label,title,dev,dots_x,dots_y, style, color, xrange, yrange, lw, style_flag, color_flag, font_size, font_style,legend, dots_style)
         ! data
         real, allocatable, intent(in), dimension(:) :: x
         real, allocatable, intent(in), dimension(:,:) :: y
+        integer , intent(in), optional :: dots_style(:)
         integer :: n_p, n_l
         ! label
         character(len=*), intent(in), optional  :: x_label, y_label, title
@@ -132,29 +133,44 @@ Module Plot_Pgplot
         ! parameters for legend pos and distance
         legend_length = 0.1
         legend_gap = 0.05
-        legend_x_offset = 0.66
-        legend_y_offset = 0.88
+        legend_x_offset = 0.11
+        legend_y_offset = 0.86
         legend_yaxis_length = 38.0
-        legend_box_width = 2.7
+        legend_box_width = 2.1
         legend_box_gap = 0.02
         
         
         do i = 1, n_l
+            
+            
             ! set line width
             if (present(lw)) then
                 call pgslw(lw)
             else
                 call pgslw(3)
             end if
+            
             call PGSLS(style_array(i))
             call PGSCI(color_array(i))
             
             ! plot line, num of data points, data
             call PGLINE(n_p,x,y(i,:))        
             
+            ! plot data points
+            if (present(dots_style)) then
+                call pgslw(30)
+                call PGPT(n_p, x, y(i,:), dots_style(i))
+            end if
+            
             ! legend
             if (present(legend)) then
                 call PGSAH (1, 0.0, 2.0)
+                ! set line width
+                if (present(lw)) then
+                    call pgslw(lw)
+                else
+                    call pgslw(3)
+                end if
                 call PGLINE(2,(/abs(xmax-xmin) * legend_x_offset+xmin, abs(xmax-xmin) * legend_x_offset + abs(xmax-xmin) * legend_length + xmin/), (/abs(ymax-ymin) * legend_y_offset - real(i-1)* abs(ymax-ymin) * legend_gap + ymin, abs(ymax-ymin) * legend_y_offset - real(i-1)* abs(ymax-ymin) * legend_gap + ymin/))
                 !call pgarro(abs(xmax-xmin)*7.5/10.0 , abs(ymax-ymin)/2.0 * 8.5/10.0 - real(i-1)* abs(ymax-ymin) * 1.0/10.0 * legend_gap, abs(xmax-xmin)*7.5/10.0 + abs(xmax-xmin)*1.0/10.0*legend_length, abs(ymax-ymin)/2.0 * 8.5/10.0 - real(i-1)* abs(ymax-ymin) * 1.0/10.0 * legend_gap);
                 
