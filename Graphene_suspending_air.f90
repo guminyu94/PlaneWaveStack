@@ -48,7 +48,7 @@ module Graphene_suspending_air
         inc_field  = Fields((1.0_wp,0.0_wp)*cos(theta/pi*180_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp))
         
         ! these graphene paramters are imported
-        b0 = 0.5
+        !b0 = 0.5
         call sigmas(real(freq),sig_d,sig_h,n_d,n_h)
         
         sigxx = CMPLX(sig_d,wp)
@@ -58,7 +58,6 @@ module Graphene_suspending_air
 
         
         layers(1)=Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), sigxx, sigyy, sigxy, sigyx, (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
-       
         
         layers(2)=Layer(air_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
 

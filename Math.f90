@@ -135,7 +135,7 @@ Module Math
         complex(wp), intent(in) :: Ex, Ey
         complex(wp) :: rpp, rps
         real(wp) :: value
-        value = -1.0 * atan2( ( abs(Ex + (0.0_wp,1.0_wp)*Ey)**2.0_wp - abs(Ex - (0.0_wp,1.0_wp)*Ey)**2.0_wp ) , ( abs(Ex + (0.0_wp,1.0_wp)*Ey)**2.0_wp + abs(Ex - (0.0_wp,1.0_wp)*Ey)**2.0_wp ))
+        value = -1.0_wp*atan2( ( abs(Ex + (0.0_wp,1.0_wp)*Ey)**2.0_wp - abs(Ex - (0.0_wp,1.0_wp)*Ey)**2.0_wp ) , ( abs(Ex + (0.0_wp,1.0_wp)*Ey)**2.0_wp + abs(Ex - (0.0_wp,1.0_wp)*Ey)**2.0_wp ))
    end function ellipticity
    
    subroutine phase_unwrap_1d(xw,row_index,threshold)
@@ -162,9 +162,4 @@ Module Math
         deallocate(xu)
    end subroutine phase_unwrap_1d
    
-function test_f(x) result(y)
-    real, intent(in) :: x
-    real :: y
-    y=x
-end function test_f
 end Module Math

@@ -103,11 +103,10 @@ Module Swapper
             freq_array(j) = real(freq_cur/1.0E12_wp)
             
             ! save data for plotting
-            angle_array(1,j) = real(ellipse_angle(tx_ref(1,1,1),tx_ref(1,2,1))) / PI * 180.0
-            data_array(1,j) = real((abs(tx_ref(1,1,1))**2.0 +  abs(tx_ref(1,2,1))**2.0)**0.5)
-            !data_array(1,j) = (abs(tx_ref(2,1,1))**2.0 +  abs(tx_ref(2,2,1))**2.0)**0.5
-            !data_array(2,j) = ellipticity(tx_ref(2,1,1),tx_ref(2,2,1))
-            print*, data_array(1,j)
+            angle_array(1,j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1))) / PI * 180.0
+            data_array(1,j) = (abs(tx_ref(2,1,1))**2.0 +  abs(tx_ref(2,2,1))**2.0)**0.5
+            data_array(2,j) = ellipticity(tx_ref(2,1,1),tx_ref(2,2,1))
+            
             ! print *, 'Freq: ', freq_cur/1.0E12_wp, ' THz'
             ! print *, 'Tx_Faraday_rot_angle: ', angle_array(j) , ' Degree'
             
@@ -128,8 +127,8 @@ Module Swapper
         
         ! phase unwrap
         !call phase_unwrap_1d(angle_array,1,90.0)
-        !angle_array(2,:) = data_array(1,:) * (( (angle_array(1,:))**2.0 + (data_array(2,:) / PI * 180.0)**2.0  ) **0.5)
-       
+        angle_array(2,:) = data_array(1,:) * (( (angle_array(1,:))**2.0 + (data_array(2,:) / PI * 180.0)**2.0  ) **0.5)
+        data_array(2,:) = tan(data_array(2,:))
         ! save data for global plotting
         if (present(save_data_flag) .and. (save_data_flag .eq. 1)) then
             if (counter .eq. 1) then
@@ -137,8 +136,10 @@ Module Swapper
             end if
         
             ! save the data to global array
-            data_2(counter+1,:) = -1.0*angle_array(1,:)
-            data_3(counter+1,:) = data_array(1,:)
+            data_2((counter-1)*2+1,:) = angle_array(1,:)
+            data_2((counter-1)*2+2,:) = angle_array(2,:)
+            data_3((counter-1)*2+1,:) = data_array(1,:)
+            data_3((counter-1)*2+2,:) = data_array(2,:)
             counter = counter + 1
         end if
         

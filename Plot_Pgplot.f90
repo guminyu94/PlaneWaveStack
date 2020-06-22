@@ -180,7 +180,7 @@ Module Plot_Pgplot
                 ! legend font size
                 call PGSCH(0.8)
                 ! legend font style
-                call pgscf(3);
+                call pgscf(3)
                 call PGMTXT('B',- (legend_yaxis_length * legend_y_offset) + real(i-1) * legend_gap * legend_yaxis_length , legend_x_offset + legend_length + 0.01,0.0,trim(legend(i)))
             
             end if
