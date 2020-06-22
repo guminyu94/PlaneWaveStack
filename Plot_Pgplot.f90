@@ -133,10 +133,11 @@ Module Plot_Pgplot
         ! parameters for legend pos and distance
         legend_length = 0.1
         legend_gap = 0.05
-        legend_x_offset = 0.62
-        legend_y_offset = 0.85
+        legend_x_offset = 0.72
+        !legend_y_offset = 0.92
+        legend_y_offset = 0.22
         legend_yaxis_length = 38.0
-        legend_box_width = 3.2
+        legend_box_width = 2.1
         legend_box_gap = 0.02
         
         

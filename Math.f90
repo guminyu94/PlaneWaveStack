@@ -162,5 +162,9 @@ Module Math
         deallocate(xu)
    end subroutine phase_unwrap_1d
    
-   
+function test_f(x) result(y)
+    real, intent(in) :: x
+    real :: y
+    y=x
+end function test_f
 end Module Math

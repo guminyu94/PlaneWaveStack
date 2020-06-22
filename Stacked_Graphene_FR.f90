@@ -8,8 +8,8 @@ module Stacked_Graphene_FR
     use S_Matrix_Class
     implicit none   
     integer, parameter :: n_mat = 1
-    complex(wp), allocatable :: eps_array(:)
-    real(wp), allocatable :: thickness_array(:)
+    complex(wp), allocatable :: eps_array(:), mat_u
+    real(wp), allocatable :: thickness_array(:), wl_factor
     integer, allocatable :: g_array(:)
     integer :: p_count, is_g_1, is_g_2
     real(wp) :: inter_thickness, bottom_thickness
@@ -26,11 +26,10 @@ module Stacked_Graphene_FR
         real(wp), intent(in), optional, dimension(:) :: parameters
         complex(wp), dimension(2,2,2) :: txref_coeff_pc
         
-        p_count = 0
-        inter_mat = si_e
-        bottom_thickness = 12.0e-6_wp
+        !inter_mat = si_e
+        !bottom_thickness = 12.0e-6_wp
         !bottom_thickness = 9.6e-6_wp
-        
+        inter_mat = mat_u
         if (allocated(eps_array)) then
             deallocate(eps_array)
             deallocate(g_array)
@@ -39,11 +38,11 @@ module Stacked_Graphene_FR
         allocate(eps_array(n_mat))
         allocate(g_array(n_mat))
             
-        eps_array(1) = si_e
+        eps_array(1) = mat_u
         ! eps_array(2) = si_e
         ! eps_array(2) = polymethylpentene_e
             
-        call pc_thickness_config(eps_array,thickness_array,2.0e12_wp,4.0_wp*(real(p_count,wp)+1.0_wp)) 
+        call pc_thickness_config(eps_array,thickness_array,2.0e12_wp,wl_factor*(real(p_count,wp)+1.0_wp)) 
         !print*,'dieletrics thickness: ', thickness_array(1)
             
         g_array(1) = 1
@@ -79,7 +78,7 @@ module Stacked_Graphene_FR
         inc_field  = Fields((1.0_wp,0.0_wp)*cos(theta/pi*180_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp),(0.0_wp,0.0_wp))
         
         ! these graphene paramters are imported
-        !b0 = 0.5
+        b0 = 0.5
         call sigmas(real(freq),sig_d,sig_h,n_d,n_h)
         
         sigxx = CMPLX(sig_d,wp)
@@ -87,6 +86,7 @@ module Stacked_Graphene_FR
 
         sigyx = (CMPLX(sig_h,wp))
         sigxy = (CMPLX(-sig_h,wp))
+
         
         is_g_1 = 1
         ! first layer is bp and incoming media air
@@ -115,7 +115,7 @@ module Stacked_Graphene_FR
         end do
         end if
         
-        layers(p_count*n_mat+2)=Layer(si_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), bottom_thickness)
+        layers(p_count*n_mat+2)=Layer(mat_u, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), bottom_thickness)
         ! layers(p_count*n_mat+3)=Layer((1.0_wp,-1e12_wp), (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
         ! if pec backed
         pec_flag = 1

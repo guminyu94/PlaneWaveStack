@@ -24,7 +24,7 @@ Module Graphene_PC_OM
        if (present(xi_in)) then
             xi = xi_in
         else
-            xi = 45.0_wp
+            xi = 0.0_wp
         end if
         
         if (present(theta_in)) then
@@ -42,10 +42,10 @@ Module Graphene_PC_OM
         sigyy = CMPLX(sig_d,wp)
         sigyx = CMPLX(sig_h,wp)
         sigxy = CMPLX(-sig_h,wp)
-        print*, "simga_d" 
-        print*, sig_d
-        print*, "simga_h"
-        print*, sig_h
+        !print*, "simga_d" 
+        !print*, sig_d
+        !print*, "simga_h"
+        !print*, sig_h
         k_rho = k_0 * (1.0_wp**0.5_wp) * SIN(theta/180.0_wp*PI)
         
         ! vaccum with graphene sheet
@@ -57,12 +57,13 @@ Module Graphene_PC_OM
         ! PC
         do i=1,6
             layers(1+i*2) = Layer(sic_e, (1.0_wp,0.0_wp),(0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 4.01E-6_wp)
-            layers(2+i*2) = Layer(si_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 6.38E-6_wp)
+            layers(2+i*2) = Layer(si_20t_e, (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 6.38E-6_wp)
         end do
         
         ! last layer is vaccum 
         layers(15) = Layer((1.0_wp,0.0_wp), (1.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (0.0_wp,0.0_wp), (1.0_wp,0.0_wp), (1.0_wp,0.0_wp), 0.0_wp)
-    
+        
+        pec_flag = 0
     end subroutine graphene_pc_config
     
 end module Graphene_PC_OM

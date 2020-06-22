@@ -12,7 +12,7 @@ module Substrate
     complex(wp), parameter :: sio2_e_1t = (2.1316_wp, 0.0_wp)
     complex(wp), parameter :: si_e = (11.6964_wp,0.0_wp)
     complex(wp), parameter :: air_e = (1.0_wp,0.0_wp)
-    
+    complex(wp), parameter :: si_20t_e = (2.25_wp,0.0_wp)
     contains
     pure function pc_wl(eps,freq,factor) result(thickness)
     ! compute the thickness of dieletric layer to construct 1/4 wavelength photonic crystal based on eps input and freq

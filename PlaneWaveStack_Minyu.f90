@@ -17,13 +17,14 @@
 !
 !****************************************************************************
 
+    
 Program PlaneWaveStack_Minyu  
     use Sim_parameters
     use Layer_Class
     use S_Matrix_Class
     use Fields_Class
     use Swapper
-    use Stacked_Graphene_FR
+    use Graphene_suspending_air
     use GrapheneSig
     use data_global
     use graphene
@@ -35,53 +36,55 @@ Program PlaneWaveStack_Minyu
     integer :: isGraphene = 0
     integer :: addSheet = 0
     integer :: i = 0
-    real(wp),allocatable :: param_output(:)
     procedure(fun_temp), pointer :: fun_p
     complex(wp), dimension(2,2,2) :: tx_ref
-    real, allocatable :: temp(:,:), p_temp(:)
-    
+
     ! *, "Use Saved configure"
     ! read (*,*) use_saved_config
     use_saved_config = 1
         
     if (use_saved_config .EQ. 1) then
-        counter = 1
-        allocate(data_1(5001))
-        allocate(data_2(6,5001))
-        allocate(data_3(6,5001))
+        counter = 0
         ! assign config to swapper                     
-        fun_p => stack_graphene_fr_config
-        
-        
+        fun_p => graphene_pc_config
+        !call CBESI((0.1,0.1), 1.0, 1, 3, CY, 0, 0)
+       ! print *, CY(1)
+        !bottom_thickness = 50.0e-6_wp
+        !mat_u = (1.0_wp,0.0_wp)
+        !p_count = 2
+        !wl_factor = 4.0_wp
         ! swap freq
-        b0 = 0.5
-        call freq_swap(fun_p,0.01e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 0)
+        allocate(data_1(301))
+        allocate(data_2(3,301))
+        allocate(data_3(3,301))
+        b0 = 1.0
+        muc = 50.0/1.160452e4  
+        call freq_swap(fun_p,2.3e13_wp, 2.6e13_wp, 301,savefig_flag = 0,save_data_flag=1)
         
-        ! swap freq 2 
-        b0 = 2.5
-        call freq_swap(fun_p,0.01e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 0)
+        b0 = 1.0
+        muc = 510.0/1.160452e4  
+        call freq_swap(fun_p,2.3e13_wp, 2.6e13_wp, 301,savefig_flag = 0,save_data_flag=1)
         
-        ! swap freq 3 
-        b0 = 5.0
-        call freq_swap(fun_p,0.01e12_wp, 5E+12_wp, 5001,output = param_output,savefig_flag = 0)
+        b0 = 1.0
+        muc = 660.0/1.160452e4  
+        call freq_swap(fun_p,2.3e13_wp, 2.6e13_wp, 301,savefig_flag = 0,save_data_flag=1)
+        ! call peak_graphene_sigma(2.0e12_wp,2.5_wp)
+        !allocatea(temp(2,6))
+        !temp(1,:) = (/15.278,27.166,40.795,61.287,74.944,104.258/)
+        !temp(2,:) = (/14.101,22.670,26.439,36.253,37.126,53.105/)
+        !call plot_1d((/1,2,3,4,5,6/),temp, x_label = 'p', y_label = 'Angle (Degrees)', title = '', color_flag = 1,style_flag = 1,dev = 'anglefom_p16.ps/CPS',legend=(/'Kerr Angle', 'FOM'/))
         
-        ! plot result
-        call plot_1d(data_1,data_2, x_label = '\(2156) (THz)', y_label = 'Angle (Degrees)', title = '', color = (/1,1,2,2,3,3/),style=(/1,2,1,2,1,2/),dev = 'kerr_angle_B0.ps/CPS',legend=(/'Kerr Angle, B\d0\u = 0.5T','FOM, B\d0\u = 0.5','Kerr Angle, B\d0\u = 2.5T','FOM, B\d0\u = 2.5T','Kerr Angle, B\d0\u = 5.0T','FOM, B\d0\u = 5.0T'/))
-        call plot_1d(data_1,data_3, x_label = '\(2156) (THz)', y_label = 'Amplitude (A.U.)', title = '', color = (/1,1,2,2,3,3/),style=(/1,2,1,2,1,2/),dev = 'ref_B0.ps/CPS',legend=(/'Reflectance, B\d0\u = 0.5T','Ellipticity, B\d0\u = 0.5T','Reflectance, B\d0\u = 2.5T','Ellipticity, B\d0\u = 2.5T','Reflectance, B\d0\u = 5.0T','Ellipticity, B\d0\u = 5.0T'/))
-        
-        allocate(temp(2,6))
-        allocate(p_temp(6))
-        p_temp = (/1,2,3,4,5,6/)
-        temp(1,:) = (/15.278,27.166,40.795,61.287,74.944,104.258/)
-        temp(2,:) = (/14.101,22.670,26.439,36.253,37.126,53.105/)
-        
-        !call plot_1d(p_temp,temp, x_label = 'p', y_label = 'Angle (Degrees)', title = '', color_flag = 1,style_flag = 1,dev = 'anglefom_p16.ps/CPS',legend=(/'Kerr Angle', 'FOM'/), dots_style = (/9,10/))
+        call plot_1d(data_1,data_2, x_label = '\(2156) (THz)', y_label = 'Angle (Degrees)',yrange=(/-0.6,0.3/), title = '', color_flag = 1,style_flag = 1,dev = 'graphene_pc_validation.ps/CPS',legend=(/'\(2138) = 50K', '\(2138) = 510K','\(2138) = 660K'/))
+        call plot_1d(data_1,data_3, x_label = '\(2156) (THz)', y_label = 'Transmittance',yrange=(/0.0,1.0/), title = '', color_flag = 1,style_flag = 1,dev = 'graphene_pc_validation_t.ps/CPS',legend=(/'\(2138) = 50K', '\(2138) = 510K','\(2138) = 660K'/))
         ! swap theta
-        ! call theta_swap(fun_p,2e12_wp,0.0_wp, 89.999_wp, 1001)
+        ! call theta_swap(fun_p,5.127e12_wp,0.0_wp, 89.999_wp, 1001)
+        
         ! plot sigma
-        ! call plot_graphene_sigma_mb0(0.1e12,5e12,1001,(/0.0,0.5,2.5,5.0/))
+        call plot_graphene_sigma_mb0(2.3e13,2.6e13,1001,(/0.0/))
+        
         ! plot field of a single freq
-        ! call fields_computation(fun_p,2E12_wp,1001,savefig_flag = 1)
+        !call fields_computation(fun_p,2E12_wp,1001,savefig_flag = 1)
+        
     else
         print *, "Number of Layers"
         read (*,*) n_layers
@@ -209,4 +212,5 @@ Program PlaneWaveStack_Minyu
     deallocate(sigma_yx)
     
     
-end program PlaneWaveStack_Minyu
+    end program PlaneWaveStack_Minyu
+    

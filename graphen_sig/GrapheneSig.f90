@@ -2,7 +2,7 @@ module GrapheneSig
 use Sim_parameters, only : wp
 implicit none
 private
-public :: sigmas, plot_graphene_sigma, plot_graphene_sigma_mb0
+public :: sigmas, plot_graphene_sigma, plot_graphene_sigma_mb0, peak_graphene_sigma
 
 ! graphene computation
 complex, public :: sig_d, sig_h
@@ -351,6 +351,18 @@ end subroutine SigTensor
         
     end subroutine plot_graphene_sigma_mb0
         
+    subroutine peak_graphene_sigma(freq_in,b_0)
+        use graphene, only : b0 
+        real(wp), intent(in) :: b_0, freq_in
+        
+        b0 = real(b_0)
+
+        call sigmas(real(freq_in),sig_d,sig_h,n_d,n_h)
+        
+        print*, 'graphene sigma_d: ', sig_d
+        print*, 'graphene sigma_h: ', sig_h
+        
+    end subroutine peak_graphene_sigma
 end module GrapheneSig
 
 
