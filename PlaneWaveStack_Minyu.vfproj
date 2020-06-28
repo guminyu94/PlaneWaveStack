@@ -64,6 +64,7 @@
 		<File RelativePath=".\JQSRT_case_2.f90"/>
 		<File RelativePath=".\Modified_Otto.f90"/>
 		<File RelativePath=".\Otto.f90"/>
+		<File RelativePath=".\Planar_Wave_Paper_Val.f90"/>
 		<File RelativePath=".\Stacked_Graphene_FR.f90"/>
 		<File RelativePath=".\Substrate.f90"/></Filter>
 		<Filter Name="graphen_sig">
@@ -76,6 +77,7 @@
 		<Filter Name="metal_sig">
 		<File RelativePath=".\Metal_drude.f90"/></Filter>
 		<Filter Name="plotting">
+		<File RelativePath=".\Data_Loader.f90"/>
 		<File RelativePath=".\Plot_Pgplot.f90"/>
 		<File RelativePath=".\slatec.lib"/></Filter>
 		<File RelativePath=".\data_global.f90"/>

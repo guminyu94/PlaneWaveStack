@@ -9,10 +9,10 @@ module Stacked_Graphene_FR
     implicit none   
     integer, parameter :: n_mat = 1
     complex(wp), allocatable :: eps_array(:), mat_u
-    real(wp), allocatable :: thickness_array(:), wl_factor
+    real(wp), allocatable :: thickness_array(:)
     integer, allocatable :: g_array(:)
     integer :: p_count, is_g_1, is_g_2
-    real(wp) :: inter_thickness, bottom_thickness
+    real(wp) :: inter_thickness, bottom_thickness, wl_factor
     complex(wp) :: inter_mat
     
     contains
@@ -26,12 +26,10 @@ module Stacked_Graphene_FR
         real(wp), intent(in), optional, dimension(:) :: parameters
         complex(wp), dimension(2,2,2) :: txref_coeff_pc
         
-        p_count = 0
-        inter_mat = si_e
-        bottom_thickness = 12.0e-6_wp
+        !p_count = 0
+        !bottom_thickness = 12.0e-6_wp
         !bottom_thickness = 9.6e-6_wp
         mat_u = si_e
-        inter_mat = mat_u
         if (allocated(eps_array)) then
             deallocate(eps_array)
             deallocate(g_array)
@@ -41,15 +39,11 @@ module Stacked_Graphene_FR
         allocate(g_array(n_mat))
             
         eps_array(1) = mat_u
-        ! eps_array(2) = si_e
-        ! eps_array(2) = polymethylpentene_e
             
-        call pc_thickness_config(eps_array,thickness_array,2.0e12_wp,4.0_wp*(real(p_count,wp)+1.0_wp)) 
+        call pc_thickness_config(eps_array,thickness_array,2.0e12_wp,wl_factor*(real(p_count,wp)+1.0_wp)) 
         !print*,'dieletrics thickness: ', thickness_array(1)
             
         g_array(1) = 1
-        !g_array(2) = 0
-        !g_array(2) = 0
         
         ! update paramters relative to freq and allocate array
         call update_freq(freq)

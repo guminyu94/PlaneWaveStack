@@ -18,8 +18,9 @@ Module Swapper
     type(S_Matrix), allocatable :: S_Matrices(:)
     type(Fields) :: inc_field
     
+    ! fun pointer for config
     abstract interface
-        subroutine fun_temp(f, larray, inc_field, theta_in, xi_in, parameters)
+        subroutine fun_config(f, larray, inc_field, theta_in, xi_in, parameters)
             use Sim_parameters, only : wp
             use Fields_Class
             use Layer_Class
@@ -28,7 +29,7 @@ Module Swapper
             type(Layer), allocatable, intent(inout) :: larray(:)
             type(Fields), intent(inout) :: inc_field
             real(wp), intent(in), optional, dimension(:) :: parameters
-        end subroutine fun_temp
+        end subroutine fun_config
     end interface
     
     contains
@@ -39,7 +40,7 @@ Module Swapper
         implicit none
         real(wp), intent(in) :: freq_start, freq_end
         integer, intent(in) :: n_points
-        procedure (fun_temp), pointer :: fun
+        procedure (fun_config), pointer :: fun
         real(wp) :: freq_step, freq_cur
         complex(wp), dimension(2,2,2) :: tx_ref
         character(len=*), intent(in), optional :: file_name
@@ -100,13 +101,15 @@ Module Swapper
                 write(11,*) freq_cur, ABS(tx_ref(1,1,1))**2.0_wp, ABS(tx_ref(1,1,2))**2.0_wp, ABS(tx_ref(1,2,1))**2.0_wp, ABS(tx_ref(1,2,2))**2.0_wp, ABS(tx_ref(2,1,1))**2.0_wp, ABS(tx_ref(2,1,2))**2.0_wp, ABS(tx_ref(2,2,1))**2.0_wp, ABS(tx_ref(2,2,2))**2.0_wp
             end if
                 
-            freq_array(j) = real(freq_cur/1.0E12_wp)
-            
+            !freq_array(j) = real(freq_cur/1.0E12_wp)
+            !freq_array(counter,j) = real(freq_cur/1.0E12_wp)
+            data_1(j) = real(freq_cur/1.0E12_wp)
             ! save data for plotting
-            angle_array(1,j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1))) / PI * 180.0
-            data_array(1,j) = (abs(tx_ref(2,1,1))**2.0 +  abs(tx_ref(2,2,1))**2.0)**0.5
-            data_array(2,j) = ellipticity(tx_ref(2,1,1),tx_ref(2,2,1))
-            
+            !angle_array(1,j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1))) / PI * 180.0
+            !data_array(1,j) = (abs(tx_ref(2,1,1))**2.0 +  abs(tx_ref(2,2,1))**2.0)**0.5
+            !data_array(2,j) = ellipticity(tx_ref(2,1,1),tx_ref(2,2,1))
+            data_2(counter,j) = -1.0*real(ellipse_angle(tx_ref(1,1,1),tx_ref(1,2,1))) / PI * 180.0
+            data_3(counter,j) = abs(tx_ref(1,1,1))**2.0 
             ! print *, 'Freq: ', freq_cur/1.0E12_wp, ' THz'
             ! print *, 'Tx_Faraday_rot_angle: ', angle_array(j) , ' Degree'
             
@@ -126,23 +129,23 @@ Module Swapper
         end do
         
         ! phase unwrap
-        !call phase_unwrap_1d(angle_array,1,90.0)
-        angle_array(2,:) = data_array(1,:) * (( (angle_array(1,:))**2.0 + (data_array(2,:) / PI * 180.0)**2.0  ) **0.5)
-        data_array(2,:) = tan(data_array(2,:))
+        ! call phase_unwrap_1d(angle_array,1,90.0)
+        !angle_array(2,:) = data_array(1,:) * (( (angle_array(1,:))**2.0 + (data_array(2,:) / PI * 180.0)**2.0  ) **0.5)
+        !data_array(2,:) = tan(data_array(2,:))
         ! save data for global plotting
         if (present(save_data_flag) .and. (save_data_flag .eq. 1)) then
             if (counter .eq. 1) then
-                data_1 = freq_array
+                !data_1 = freq_array
             end if
         
             ! save the data to global array
-            data_2((counter-1)*2+1,:) = angle_array(1,:)
-            data_2((counter-1)*2+2,:) = angle_array(2,:)
-            data_3((counter-1)*2+1,:) = data_array(1,:)
-            data_3((counter-1)*2+2,:) = data_array(2,:)
-            counter = counter + 1
+            !data_2((counter-1)*2+1,:) = angle_array(1,:)
+            !data_2((counter-1)*2+2,:) = angle_array(2,:)
+            !data_3((counter-1)*2+1,:) = data_array(1,:)
+            !data_3((counter-1)*2+2,:) = data_array(2,:)
+            !counter = counter + 1
         end if
-        
+        counter = counter + 1
         !print *, 'FOM_BEST: ', maxval(angle_array(2,:))
         
         !print *, 'Rot_Angle: ', angle_array(1,2001)
@@ -152,7 +155,7 @@ Module Swapper
         
         ! call plotting subroutine
         if (present(savefig_flag) .and. (savefig_flag .EQ. 1) ) then 
-            call plot_1d(freq_array, data_array,  x_label = 'Freq(THz)', y_label = 'Amp (A.U.) ', title = 'Ref Coeff Plot', dev='ref_coeff.ps/PS', color = (/1,2,2/), style = (/1,2,3/),legend = (/'Reflectance','Ellipticity'/))
+            call plot_1d(freq_array, data_array,  x_label = 'Freq(THz)', y_label = 'Amp (A.U.) ', title = 'Ref Coeff Plot', dev='ref_coeff.ps/PS', color = (/1,2/), style = (/1,2/),legend = (/'Reflectance','Ellipticity'/))
             call plot_1d(freq_array, angle_array,  x_label = 'Freq(THz)', y_label = 'Angle (degrees) ', title = 'Kerr Rotation Angle & FOM', dev='Kerr_rot.ps/PS', style_flag = 1, color_flag = 1, legend = (/'Kerr Rot Angle','FOM'/))
             print*, 'Saved to Kerr_rot.ps'
             print*, 'Saved to ref_coeff.ps'
@@ -175,7 +178,7 @@ Module Swapper
         implicit none
         real(wp), intent(in) :: theta_start, theta_end, freq
         integer, intent(in) :: n_points
-        procedure (fun_temp), pointer :: fun
+        procedure (fun_config), pointer :: fun
         real(wp) :: theta_cur, theta_step
         complex(wp), dimension(2,2,2) :: tx_ref
         integer :: i, j
@@ -184,13 +187,17 @@ Module Swapper
         real, allocatable :: theta_array(:), angle_array(:,:), data_array(:,:)
         
         allocate(theta_array(n_points))
-        allocate(angle_array(2,n_points))
-        allocate(data_array(3,n_points))
         
         if (n_points .EQ. 1) then
             theta_step = 0.0_wp
         else
             theta_step = (theta_end - theta_start) / real(n_points-1,wp)
+        end if
+        if (.not. allocated(data_array)) then
+            allocate(data_array(2,n_points))
+        end if
+        if (.not. allocated(angle_array)) then
+            allocate(angle_array(2,n_points))
         end if
     
         do j = 1, n_points
@@ -210,12 +217,12 @@ Module Swapper
                 tx_ref = trans_ref_coeff_freespace(S_Matrices)
             end if
             
-            theta_array(j) = real(theta_cur) 
-            
+            data_1(j) = real(theta_cur) 
             !angle_array(1,j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1))) / PI * 180.0
-            data_array(1,j) = abs(tx_ref(1,1,1))**2.0 
-            data_array(2,j) = abs(tx_ref(2,1,1))**2.0
-            data_array(3,j) = 1-(abs(tx_ref(1,1,1))**2.0 + abs(tx_ref(2,1,1))**2.0)**0.5
+            !angle_array(1,j) = real(ellipse_angle(tx_ref(2,1,1),tx_ref(2,2,1))) / PI * 180.0
+            data_2(1,j) = abs(tx_ref(1,1,1))**2.0
+            data_2(2,j) = abs(tx_ref(2,1,1))**2.0
+            data_2(3,j) = 1.0-(abs(tx_ref(1,1,1))**2.0 +  abs(tx_ref(2,1,1))**2.0)
             !angle_array(2,j) = data_array(1,j) * (angle_array(1,j) + data_array(2,j))
             !print *, 'ex: ', abs(tx_ref(2,1,1))**2.0
             !print *, 'ey: ', abs(tx_ref(2,2,1)* cos(theta_cur/pi*180))**2.0 
@@ -235,14 +242,17 @@ Module Swapper
             !print *, "|ref_coeff_he|^2"
             !print *, ABS(tx_ref(2,2,1))**2.0_wp
         end do
-        
+        !angle_array(2,:) = data_array(1,:) * (( (angle_array(1,:))**2.0 + (data_array(2,:) / PI * 180.0)**2.0  ) **0.5)
+        !data_array(2,:) = tan(data_array(2,:))
         ! call plotting subroutine
         ! call plot_1d(theta_array, angle_array, x_label = 'theta (degrees)',y_label = 'Angle (Degrees)',  dev = 'theta_plot.ps/PS',color_flag = 1, style_flag = 1,legend=(/'Kerr Rot Angle','FOM'/))
-        call plot_1d(theta_array, data_array,  x_label = '\(0685) (degrees)', y_label = 'Amplitude (A.U.) ', title = '', dev='theta_ref_coeff.ps/CPS', color = (/1,2,3/), style = (/1,2,3/),legend = (/'Transmittance','Reflectance','Absorption'/))
-        print*, 'theta plot saved'
-        deallocate(theta_array)
-        deallocate(data_array)
-        deallocate(angle_array)
+        !call plot_1d(theta_array, data_array,  x_label = '\(0685) (degrees)', y_label = 'Amp (A.U.) ', title = 'Ref Coeff Plot', dev='theta_coeff.ps/CPS', color_flag = 1, style_flag = 1,legend = (/'Reflectance','Ellipticity'/))
+        !call plot_1d(theta_array, angle_array,  x_label = '\(0685) (degrees)', y_label = 'Angle (degrees) ', title = 'Kerr Rotation Angle & FOM', dev='theta_rot.ps/CPS', style_flag = 1, color_flag = 1, legend = (/'Kerr Rot Angle','FOM'/))
+            
+        !print*, 'theta plot saved'
+        !deallocate(theta_array)
+        !deallocate(data_array)
+        !deallocate(angle_array)
     end subroutine theta_swap
     
     ! obtain fields based on freq, fun stands for the function pointer of model's configuration
@@ -250,7 +260,7 @@ Module Swapper
         use Plot_Pgplot
         use Sim_parameters, only : pec_flag
         implicit none
-        procedure (fun_temp), pointer :: fun
+        procedure (fun_config), pointer :: fun
         real(wp), intent(in) :: freq
         integer, intent(in) :: n_points
         character(len=*), intent(in), optional :: file_name

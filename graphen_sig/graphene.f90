@@ -14,7 +14,7 @@
     
     real :: muc = 0.2   !1.0 ! 0.2 ! eV
 
-    real, parameter :: tk = 300 ! 300K
+    real, parameter :: tk = 10 ! 300K
 
     real, parameter :: vf = 1.0e6
 
@@ -22,8 +22,8 @@
 
     real, parameter :: sigmin = e / (4.0 * hbar)
 
-    real, parameter :: kbt = kB * tK
+    real :: kbt = kB * tK
     
-    real :: b0 = 1.0
+    real :: b0 = 0.5
     
 end module graphene

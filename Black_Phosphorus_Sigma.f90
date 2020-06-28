@@ -48,7 +48,7 @@
         sigma_mat(2,2) = sigma_zig
     end function bp_sigma
     
-     function bp_sigma_b0(freq,n,b_0) result(sigma_mat)
+    function bp_sigma_b0(freq,n,b_0) result(sigma_mat)
         real(wp), intent(in) :: freq
         ! carrier density (adjustable)
         real(wp), intent(in) :: n 

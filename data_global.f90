@@ -5,5 +5,7 @@ module data_global
     real, allocatable :: data_2(:,:) 
     real, allocatable :: data_3(:,:) 
     integer :: counter
+    
+    
 end module data_global
     

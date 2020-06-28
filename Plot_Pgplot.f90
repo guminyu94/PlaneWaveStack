@@ -6,24 +6,26 @@
 !
 !****************************************************************************
 Module Plot_Pgplot
+    type dots 
+        real, allocatable :: dots_data(:)
+    end type dots
     
     contains
-    subroutine plot_1d(x,y,x_label,y_label,title,dev,dots_x,dots_y, style, color, xrange, yrange, lw, style_flag, color_flag, font_size, font_style,legend, dots_style)
+    subroutine plot_1d(x,y,x_label,y_label,title,dev,dots_x,dots_y, style, color, xrange, yrange, lw, style_flag, color_flag, font_size, font_style,legend, dots_style,data_points_style,dots_legend,dots_color)
         ! data
         real, allocatable, intent(in), dimension(:) :: x
         real, allocatable, intent(in), dimension(:,:) :: y
-        integer , intent(in), optional :: dots_style(:)
-        integer :: n_p, n_l
+        integer :: n_p, n_l, n_d_p, n_d_l
         ! label
         character(len=*), intent(in), optional  :: x_label, y_label, title
         ! plot dev name
         character(len=*), intent(in), optional  :: dev
         real :: ymin, ymax, xmin, xmax
         ! mark point
-        real, allocatable, optional, intent(in) :: dots_x(:,:), dots_y(:,:)
+        type(dots), allocatable, optional, intent(in) :: dots_x(:), dots_y(:)
         ! line style, color and width
-        integer, allocatable, dimension(:) :: color_array, style_array
-        integer, intent(in),optional, dimension(:)  :: style, color
+        integer, allocatable, dimension(:) :: color_array, style_array, dots_style_array, dots_color_array
+        integer, intent(in),optional, dimension(:)  :: style, color, dots_style, data_points_style, dots_color
         integer, intent(in), optional :: lw
         ! x y axis range
         real, intent(in), optional :: xrange(2),yrange(2)
@@ -33,7 +35,7 @@ Module Plot_Pgplot
         real, intent(in), optional :: font_size
         integer, intent(in), optional :: font_style
         ! legend
-        character(len=*), intent(in), optional :: legend(:)
+        character(len=*), intent(in), optional :: legend(:),dots_legend(:)
         ! legend length, 0 - 1
         real :: legend_length, legend_gap, legend_x_offset, legend_y_offset, legend_box_gap, legend_box_width
         
@@ -133,17 +135,13 @@ Module Plot_Pgplot
         ! parameters for legend pos and distance
         legend_length = 0.1
         legend_gap = 0.05
-        legend_x_offset = 0.72
-        !legend_y_offset = 0.92
-        legend_y_offset = 0.22
+        legend_x_offset = 0.56
+        legend_y_offset = 0.32
         legend_yaxis_length = 38.0
-        legend_box_width = 2.1
+        legend_box_width = 3.6
         legend_box_gap = 0.02
         
-        
         do i = 1, n_l
-            
-            
             ! set line width
             if (present(lw)) then
                 call pgslw(lw)
@@ -158,14 +156,13 @@ Module Plot_Pgplot
             call PGLINE(n_p,x,y(i,:))        
             
             ! plot data points
-            if (present(dots_style)) then
+            if (present(data_points_style)) then
                 call pgslw(30)
-                call PGPT(n_p, x, y(i,:), dots_style(i))
+                call PGPT(n_p, x, y(i,:), data_points_style(i))
             end if
             
             ! legend
             if (present(legend)) then
-                call PGSAH (1, 0.0, 2.0)
                 ! set line width
                 if (present(lw)) then
                     call pgslw(lw)
@@ -187,6 +184,47 @@ Module Plot_Pgplot
             
         end do
         
+        ! plot data points
+        if (present(dots_x) .and. present(dots_y)) then
+            n_d_l = size(dots_y)
+            allocate(dots_style_array(n_d_l))
+            allocate(dots_color_array(n_d_l))
+            do i = 1, n_d_l
+                n_d_p = size(dots_y(i)%dots_data)
+                if (present(dots_style)) then
+                    dots_style_array(i) = dots_style(i)
+                else
+                    dots_style_array(i) = i
+                end if
+                if (present(dots_color)) then
+                    dots_color_array(i) = dots_color(i)
+                else
+                    dots_color_array(i) = i
+                end if
+                
+                ! plot data points
+                call pgslw(50)
+                call PGSCI(color_array(i))
+                call PGPT(n_d_p, dots_x(i)%dots_data, dots_y(i)%dots_data, dots_style_array(i))
+                ! dots legend
+                if (present(dots_legend)) then
+                    ! set line width
+                    call PGPT(1,(/abs(xmax-xmin) * legend_x_offset+xmin+abs(xmax-xmin) * legend_length/2.0/),(/abs(ymax-ymin) * legend_y_offset - real(i-1)* abs(ymax-ymin) * legend_gap + ymin - real(n_l)* abs(ymax-ymin) * legend_gap /),dots_style_array(i))
+                    
+                    ! legend line width
+                    call pgslw(1)
+                    ! legend font size
+                    call PGSCH(0.8)
+                    ! legend font style
+                    call pgscf(3)
+                    call PGMTXT('B',- (legend_yaxis_length * legend_y_offset) + real(i-1) * legend_gap * legend_yaxis_length + real(n_l) * legend_gap * legend_yaxis_length, legend_x_offset + legend_length + 0.01,0.0,trim(dots_legend(i)))
+            
+                end if
+            
+            end do
+            
+        end if
+        
         ! add legend bounding box
         if (present(legend)) then
             ! box line width
@@ -197,7 +235,7 @@ Module Plot_Pgplot
             call PGSCI(1)
 
             ! draw box
-            call PGRECT(legend_x_offset * abs(xmax-xmin) + xmin - legend_box_gap * abs(xmax-xmin), abs(xmax-xmin) * legend_x_offset + xmin + legend_box_gap * abs(xmax-xmin) + abs(xmax-xmin) * legend_length * legend_box_width, abs(ymax-ymin) * legend_y_offset + ymin + abs(ymax-ymin) * legend_box_gap * 1.5, abs(ymax-ymin) * legend_y_offset - (size(legend)-1.0) * abs(ymax-ymin) * legend_gap + ymin - abs(ymax-ymin) * legend_box_gap)
+            call PGRECT(legend_x_offset * abs(xmax-xmin) + xmin - legend_box_gap * abs(xmax-xmin), abs(xmax-xmin) * legend_x_offset + xmin + legend_box_gap * abs(xmax-xmin) + abs(xmax-xmin) * legend_length * legend_box_width, abs(ymax-ymin) * legend_y_offset + ymin + abs(ymax-ymin) * legend_box_gap * 1.5, abs(ymax-ymin) * legend_y_offset - (size(legend)+size(dots_legend)-1.0) * abs(ymax-ymin) * legend_gap + ymin - abs(ymax-ymin) * legend_box_gap )
         end if
             
         call pgend
